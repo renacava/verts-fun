@@ -12,3 +12,5 @@ all/emacsd
 all/fonts
 all/locale
 all/ssl
+.portacle_root
+portacle.exe
