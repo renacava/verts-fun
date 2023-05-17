@@ -1,0 +1,14 @@
+win/ag
+win/share
+win/asdf
+win/cache
+win/emacs
+win/git
+win/hunspell
+win/launcher
+win/sbcl
+all/dictionaries
+all/emacsd
+all/fonts
+all/locale
+all/ssl
