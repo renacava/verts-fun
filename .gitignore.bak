@@ -7,3 +7,8 @@ win/git
 win/hunspell
 win/launcher
 win/sbcl
+all/dictionaries
+all/emacsd
+all/fonts
+all/locale
+all/ssl
