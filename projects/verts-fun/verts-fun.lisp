@@ -107,9 +107,10 @@
                                                     (* size (+ (aref pos 2) (aref (first vert-col-uv) 2))))
                                               (second vert-col-uv)
                                               (third vert-col-uv)))
-                       *cube-mesh-data-x*)
+                       *cube-mesh-data*)
         :indices (mapcar (lambda (x) (+ x vert-start-index))
-                         *cube-mesh-indices-x*)))
+                         *cube-mesh-indices*)))
+
 (defun cube-mesh-to-gpu-arrays (cube-mesh)
   (list :verts (make-gpu-array (getf cube-mesh :verts) :element-type 'g-pnt)
         :indices (make-gpu-array (getf cube-mesh :indices) :element-type :uint)))
