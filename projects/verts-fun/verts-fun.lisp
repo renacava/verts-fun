@@ -28,8 +28,8 @@
             (:smooth colour))))
 
 (defun-g fragment-shader-stage ((colour :vec3))
-  ;;(v! colour 1.0)
-  (v! 0.5 0.5 0.5 0)
+  (v! colour 1.0)
+  ;;(v! 0.5 0.5 0.5 0)
   )
 
 (defpipeline-g cube-pipeline ()
@@ -39,6 +39,7 @@
 (defun start (&key (x 400) (y 300) (title "verts-fun"))
   (cepl:repl x y)
   (window-set-title title)
+  (setf (cepl:depth-test-function) #'<=)
   (play :start))
 
 (defun stop ()
@@ -58,7 +59,7 @@
 (defun get-cepl-context-surface-resolution ()
   (surface-resolution (current-surface (cepl-context))))
 
-(defun update-viewport-perspective-matrix (&key (fov 90) (near-clip 0.001) (far-clip 300))
+(defun update-viewport-perspective-matrix (&key (fov 90) (near-clip 0.01) (far-clip 300))
   (setf *perspective-matrix*
         (rtg-math.projection:perspective (x (get-viewport-resolution))
                                          (y (get-viewport-resolution))
@@ -84,9 +85,9 @@
   (setf (resolution (current-viewport))
         (get-cepl-context-surface-resolution))
   (update-viewport-perspective-matrix)
-  (setf *cam-pos* (v! (* 2 (+ 18 (* 18 (sin (* 2 (now))))))
-                      (* 2 (+ 18 (* 18 (sin (* 1.5 (now))))))
-                      (* 1 (+ 90 (sin (* 2 (now)))))))
+  (setf *cam-pos* (v! (* 2 (+ 2 (* 2 (sin (* 2 (now))))))
+                      (* 2 (+ 2 (* 2 (sin (* 1.5 (now))))))
+                      (* 1 (+ 20 (sin (* 2 (now)))))))
   (setf *cam-rot* (q:from-axis-angle (v! 0 1 0)
                                      (radians 0;;(* 10 (sin (* 5.0 (now))))
                                               )))
@@ -111,7 +112,7 @@
     (setf *buffer-stream* (make-buffer-stream (getf *gpu-array* :verts)
                                               :index-array (getf *gpu-array* :indices)))))
 
-(def-simple-main-loop play (:on-start (lambda () (init 16 16)))
+(def-simple-main-loop play (:on-start (lambda () (init 8 8 1.5)))
   (main-loop))
 
 (defparameter *cube-mesh-data* (list
@@ -159,8 +160,8 @@
                                                  collect (vec3 (float x)
                                                                (float y)
                                                                (float z))))))
-         (positions
-           (cull-invisible-block-positions positions))
+         ;; (positions
+         ;;   (cull-invisible-block-positions positions))
          (positions (mapcar (lambda (pos) (vec3 (* spacing (aref pos 0))
                                                 (* spacing (aref pos 1))
                                                 (* spacing (aref pos 2))))
