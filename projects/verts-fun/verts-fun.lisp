@@ -19,8 +19,11 @@
   (let* ((id gl-instance-id)
          (now (+ now id))
          (pos (pos vert))
-        ;; (pos (+ pos (v! (* 3 (sin now)) (* 3 (cos now)) (+ -5 (sin (* 5.0 now))))))
-         (colour (+ (pos vert) (v! 0.5 0.5 0.5)))
+
+         (colour (vec3 (* (mod (aref pos 0) (+ 1.2 (sin (* 0.15 now)))) (+ 1.0 (sin (* 2 now))))
+                       (* (mod (aref pos 1) (+ 1.2 (sin (* 0.05 now)))) (+ 1.0 (sin (* 3 now))))
+                       (* (mod (aref pos 2) (+ 1.2 (sin (* 0.1 now)))) (+ 1.0 (cos (* 1 now))))
+                       ))
          (pos (- pos cam-pos))
          (pos (* cam-rot pos)))
     ;; (* perspective (v! pos 1))
@@ -59,7 +62,7 @@
 (defun get-cepl-context-surface-resolution ()
   (surface-resolution (current-surface (cepl-context))))
 
-(defun update-viewport-perspective-matrix (&key (fov 90) (near-clip 0.01) (far-clip 300))
+(defun update-viewport-perspective-matrix (&key (fov 90) (near-clip 0.01) (far-clip 3000))
   (setf *perspective-matrix*
         (rtg-math.projection:perspective (x (get-viewport-resolution))
                                          (y (get-viewport-resolution))
@@ -100,7 +103,7 @@
           :cam-rot (q:to-mat3 (q:inverse *cam-rot*))))
   (swap))
 
-(defun init (&optional (chunk-size 16) (chunk-height 16) (spacing 5))
+(defun init (&optional (chunk-size 8) (chunk-height 8) (spacing 1.5))
   (when t
     (when *buffer-stream*
       (free *buffer-stream*))
@@ -112,7 +115,7 @@
     (setf *buffer-stream* (make-buffer-stream (getf *gpu-array* :verts)
                                               :index-array (getf *gpu-array* :indices)))))
 
-(def-simple-main-loop play (:on-start (lambda () (init 8 8 1.5)))
+(def-simple-main-loop play (:on-start (lambda () (init)))
   (main-loop))
 
 (defparameter *cube-mesh-data* (list
