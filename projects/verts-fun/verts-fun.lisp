@@ -7,6 +7,9 @@
 (defvar *perspective-matrix* nil)
 (defvar *cam-pos* (v! 0 0 0))
 (defvar *cam-rot* (q:identity))
+(defparameter *fps* 0)
+
+
 
 (defun-g vertex-shader-stage ((vert g-pnt)
                               &uniform (now :float)
@@ -33,6 +36,18 @@
   :vertex (vertex-shader-stage g-pnt)
   :fragment (fragment-shader-stage :vec3))
 
+(defun start (&key (x 400) (y 300) (title "verts-fun"))
+  (cepl:repl x y)
+  (window-set-title title)
+  (play :start))
+
+(defun stop ()
+  (play :stop)
+  (cepl:quit))
+
+(defun window-set-title (title)
+  (setf (cepl:surface-title (cepl:current-surface)) (format nil "~a" title)))
+
 (defun now ()
   (* 0.0005 (get-internal-real-time)))
 
@@ -50,6 +65,18 @@
                                          (float near-clip)
                                          (float far-clip)
                                          (float fov))))
+
+(let ((frame 0)
+      (stepper (temporal-functions:make-stepper (temporal-functions:seconds 1))))
+  (defun calculate-fps ()
+    (incf frame 1)
+    (when (funcall stepper)
+      (setf *fps* frame
+            frame 0))))
+
+(defun main-loop ()
+  (draw)
+  (calculate-fps))
 
 (defun draw ()
   (clear)
@@ -85,7 +112,7 @@
                                               :index-array (getf *gpu-array* :indices)))))
 
 (def-simple-main-loop play (:on-start (lambda () (init 16 16)))
-  (draw))
+  (main-loop))
 
 (defparameter *cube-mesh-data* (list
                                   (list (vec3 0.5 -0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
