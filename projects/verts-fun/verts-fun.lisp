@@ -160,10 +160,10 @@
                                                                (float y)
                                                                (float z))))))
          (positions
-           (cull-invisible-block-positions positions width height))
+           (cull-invisible-block-positions positions))
          (positions (mapcar (lambda (pos) (vec3 (* spacing (aref pos 0))
-                                              (* spacing (aref pos 1))
-                                              (* spacing (aref pos 2))))
+                                                (* spacing (aref pos 1))
+                                                (* spacing (aref pos 2))))
                             positions)))
     (loop for index below (length positions)
           collect (make-cube-mesh :pos (elt positions index)
@@ -179,16 +179,24 @@
           (eq (aref pos 2) (float (1- chunk-width))))
       t))
 
-(defun cull-invisible-block-positions (positions chunk-width chunk-height)
+(defun cull-invisible-block-positions (positions)
   (loop for pos in positions
-        nconcing (when ;; (block-at-pos-on-chunk-edge? pos chunk-width chunk-height)
-                   (and (not (query-pos pos)) ;; when block at pos should be invisible
-                        (query-pos (pos-above pos))) ;; and block at pos above should be visible
+        nconcing (when (and (block-at-pos? pos)
+                            (has-empty-neighbour? pos))
                    (list pos))))
 
-(defun query-pos (pos)
-  "Returns T if the pos points to a location that has a block that should be visible."
-  (> (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0)))))))
+(defun block-at-pos? (pos)
+  "Returns T if there's a block at the given pos."
+  (< (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0)))))))
+
+(defun has-empty-neighbour? (pos)
+  "Returns T if the given pos has an empty neighbour in any of the cardinal directions."
+  (or (not (block-at-pos? (pos-above pos)))
+      (not (block-at-pos? (pos-below pos)))
+      (not (block-at-pos? (pos-ahead pos)))
+      (not (block-at-pos? (pos-behind pos)))
+      (not (block-at-pos? (pos-left pos)))
+      (not (block-at-pos? (pos-right pos)))))
 
 (defun pos-above (pos)
   (vec3 (aref pos 0)
@@ -219,12 +227,3 @@
   (vec3 (aref pos 0)
         (aref pos 1)
         (- (aref pos 2) 1.0)))
-
-(defun pos-surrounded-by-visible? (pos)
-  "Returns t if the given block is surrounded by visible blocks."
-  (and (query-pos (pos-above pos))
-       (query-pos (pos-below pos))
-       (query-pos (pos-left pos))
-       (query-pos (pos-right pos))
-       (query-pos (pos-ahead pos))
-       (query-pos (pos-behind pos))))
