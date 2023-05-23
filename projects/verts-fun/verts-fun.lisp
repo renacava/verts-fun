@@ -5,11 +5,11 @@
 (defvar *buffer-stream* nil)
 (defvar *gpu-array* nil)
 (defvar *perspective-matrix* nil)
-(defvar *cam-pos* (v! 0 0 0))
-(defvar *cam-rot* (q:identity))
-(defparameter *fps* 0)
+;; (defvar *cam-pos* (v! 0 0 0))
+;; (defvar *cam-rot* (q:identity))
+(defparameter *fps* 1)
 (defparameter *delta* 1)
-
+(defparameter *camera* (make-instance 'camera))
 
 
 (defun-g vertex-shader-stage ((vert g-pnt)
@@ -90,7 +90,11 @@
     (when (funcall stepper)
       (setf *fps* frame
             frame 0))
-    (setf *delta* (/ 1.0 *fps*))))
+    (setf *delta* (/ 1.0 *fps*))
+    (print *delta*)
+    (print *fps*)
+    ;;(* (/ 0.5 internal-time-units-per-second) (get-internal-real-time))
+    ))
 
 (defun main-loop ()
   (draw)
@@ -98,24 +102,26 @@
 
 (defun draw ()
   (clear)
+  
+  
+  (update-camera *camera*)
   (step-host)
   (setf (resolution (current-viewport))
         (get-cepl-context-surface-resolution))
   (update-viewport-perspective-matrix)
-  (setf *cam-pos* (v! (* 2 (+ 2 (* 2 (sin (* 2 (now))))))
-                      (* 2 (+ 2 (* 2 (sin (* 1.5 (now))))))
-                      (* 1 (+ 20 (sin (* 2 (now)))))))
-  (setf *cam-rot* (q:from-axis-angle (v! 0 1 0)
-                                     (radians 0;;(* 10 (sin (* 5.0 (now))))
-                                              )))
   (with-instances 1
       (map-g #'cube-pipeline
           *buffer-stream*
           :now (now)
           :perspective *perspective-matrix*
-          :cam-pos *cam-pos*
-          :cam-rot (q:to-mat3 (q:inverse *cam-rot*))))
-  (swap))
+          :cam-pos (pos *camera*)
+          :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))))
+  (swap)
+  (decay-events))
+
+
+
+
 
 (defun init (&optional (chunk-size 8) (chunk-height 8) (spacing 1.5))
   (when t

@@ -10,4 +10,5 @@
   :serial t
   :components ((:file "package")
                (:file "utilities")
+               (:file "camera")
                (:file "verts-fun")))
