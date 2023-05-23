@@ -1,13 +1,14 @@
 ;;;; verts-fun.lisp
 
 (in-package #:verts-fun)
-(load "utilities.lisp")
+;;(load "utilities.lisp")
 (defvar *buffer-stream* nil)
 (defvar *gpu-array* nil)
 (defvar *perspective-matrix* nil)
 (defvar *cam-pos* (v! 0 0 0))
 (defvar *cam-rot* (q:identity))
 (defparameter *fps* 0)
+(defparameter *delta* 1)
 
 
 
@@ -41,19 +42,31 @@
 
 (defun start (&key (x 400) (y 300) (title "verts-fun"))
   (cepl:repl x y)
+  (setf (cepl.sdl2::vsync) t)
   (window-set-title title)
   (setf (cepl:depth-test-function) #'<=)
   (play :start))
+
+(defun main ()
+  (start)
+  (labels ((exit-if-q ()
+             (unless (equal (read-line) "q")
+               (exit-if-q))))
+    (exit-if-q)))
 
 (defun stop ()
   (play :stop)
   (cepl:quit))
 
+(defun stop-and-die ()
+  (stop)
+  (sb-ext:quit))
+
 (defun window-set-title (title)
   (setf (cepl:surface-title (cepl:current-surface)) (format nil "~a" title)))
 
 (defun now ()
-  (* 0.0005 (get-internal-real-time)))
+  (* (/ 0.5 internal-time-units-per-second) (get-internal-real-time)))
 
 (defun get-viewport-resolution ()
   "Returns a vec2 of x/y viewport resolution"
@@ -76,7 +89,8 @@
     (incf frame 1)
     (when (funcall stepper)
       (setf *fps* frame
-            frame 0))))
+            frame 0))
+    (setf *delta* (/ 1.0 *fps*))))
 
 (defun main-loop ()
   (draw)
@@ -171,7 +185,10 @@
                             positions)))
     (loop for index below (length positions)
           collect (make-cube-mesh :pos (elt positions index)
-                                  :vert-start-index (* index 8)))))
+                                  :vert-start-index (* index 8)))
+    ;; (loop for index below (length positions)
+    ;;       collect (combine-side-mesh-list (construct-block-mesh-from-sides (get-empty-neighbours (elt positions index)) (* index 8))))
+    ))
 
 (defun block-at-pos-on-chunk-edge? (pos chunk-width chunk-height)
   "Returns t if the given pos corresponds to a block that's on the edge of the chunk."
@@ -218,10 +235,15 @@
       (setf empty-neighbours (remove 'behind empty-neighbours)))
     empty-neighbours))
 
-(defun construct-block-mesh-from-sides (sides)
+(defun construct-block-mesh-from-sides (sides &optional (starting-index 0))
   "Returns a block mesh, vert index list and number of verts in the mesh, making only the faces provided."
-  (list (loop for side in sides
-         nconcing (side-to-face side))))
+  (let ((result))
+    (dotimes (index (length sides))
+      (ntack result (side-to-face (elt sides index) (+ starting-index (* 8 index)))))
+    result)
+  ;; (loop for index below (length sides)
+  ;;       nconcing (side-to-face (elt sides index) (* 4 index)))
+  )
 
 (defun side-to-face (side &optional (start-index 0))
   "Returns a list of verts and indices, representing the given side of a block mesh."
@@ -267,6 +289,12 @@
                            ('below (list 5 1 0 0 4 5))
                            ('ahead (list 6 2 1 1 5 6))
                            ('behind (list 7 4 0 0 3 7))))))
+
+(defun combine-side-mesh-list (side-mesh-list)
+  (list :verts (copy-tree *cube-mesh-data*)
+        :indices (loop for side in side-mesh-list
+                       nconc (getf side :indices))))
+
 (defun pos-above (pos)
   (vec3 (aref pos 0)
         (+ (aref pos 1) 1.0)
