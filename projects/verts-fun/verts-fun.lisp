@@ -97,34 +97,14 @@
       (print (format nil "delta-seconds = ~a~%" delta-seconds))
       (print (format nil "framerate = ~a~%" framerate))
       (setf *fps* framerate
-            *delta* delta-seconds))
-
-    ;; (incf frame 1)
-    ;; (when (funcall stepper)
-    ;;   (setf *fps* frame
-    ;;         frame 0))
-    ;; (setf *delta* (/ 1.0 *fps*))
-
-    
-
-    
-    ;; (print *delta*)
-    ;; (print *fps*)
-
-    
-    ;;(* (/ 0.5 internal-time-units-per-second) (get-internal-real-time))
-    ))
-
-
+            *delta* delta-seconds))))
 
 (defun main-loop ()
   (draw)
   (calculate-fps))
 
 (defun draw ()
-  (clear)
-  
-  
+  (clear)  
   (update-camera *camera*)
   (step-host)
   (setf (resolution (current-viewport))
