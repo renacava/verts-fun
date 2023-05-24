@@ -41,26 +41,23 @@
   :fragment (fragment-shader-stage :vec3))
 
 (defun start (&key (x 400) (y 300) (title "verts-fun"))
-  (cepl:repl x y)
-  (setf (cepl.sdl2::vsync) t)
-  (window-set-title title)
-  (setf (cepl:depth-test-function) #'<=)
-  (play :start))
+  ;; (start-cepl :x x :y y :title title)
+  (when (cepl:repl x y)
+    (setf (cepl.sdl2::vsync) t)
+    (window-set-title title)
+    (setf (cepl:depth-test-function) #'<=)
+    (setf (clear-color (cepl-context)) (vec4 0.3 0.3 0.9 1.0))
+    (play :start)))
 
 (defun main ()
   (start)
-  (labels ((exit-if-q ()
-             (unless (equal (read-line) "q")
-               (exit-if-q))))
-    (exit-if-q)))
+  (loop while (not (cepl.lifecycle:uninitialized-p))
+        do (sleep 0.1)))
 
 (defun stop ()
-  (play :stop)
-  (cepl:quit))
-
-(defun stop-and-die ()
-  (stop)
-  (sb-ext:quit))
+  (unless (or (cepl.lifecycle:shutting-down-p)
+              (cepl.lifecycle:uninitialized-p))
+    (cepl:quit)))
 
 (defun window-set-title (title)
   (setf (cepl:surface-title (cepl:current-surface)) (format nil "~a" title)))
@@ -92,21 +89,27 @@
   (defun calculate-fps ()
     (let* ((current-time (get-internal-real-time-seconds))
            (delta-seconds (- current-time last-time))
-           (framerate (truncate (/ 1.0 delta-seconds))))
+           (framerate (truncate (/ 1.0 (if (>= 0 delta-seconds)
+                                           0.1
+                                           delta-seconds)))))
       (setf last-time current-time)
-      (print (format nil "delta-seconds = ~a~%" delta-seconds))
-      (print (format nil "framerate = ~a~%" framerate))
+      ;; (print (format nil "delta-seconds = ~a~%" delta-seconds))
+      ;; (print (format nil "framerate = ~a~%" framerate))
       (setf *fps* framerate
             *delta* delta-seconds))))
 
 (defun main-loop ()
+  (when (or (cepl.lifecycle:shutting-down-p)
+            (cepl.lifecycle:uninitialized-p))
+    (play :stop)
+    (return-from main-loop))
   (draw)
-  (calculate-fps))
+  (calculate-fps)
+  )
 
 (defun draw ()
   (clear)  
   (update-camera *camera*)
-  (step-host)
   (setf (resolution (current-viewport))
         (get-cepl-context-surface-resolution))
   (update-viewport-perspective-matrix)
@@ -118,11 +121,9 @@
           :cam-pos (pos *camera*)
           :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))))
   (swap)
-  (decay-events))
-
-
-
-
+  (step-host)
+  ;;(decay-events)
+  )
 
 (defun init (&optional (chunk-size 8) (chunk-height 8) (spacing 1.5))
   (when t
