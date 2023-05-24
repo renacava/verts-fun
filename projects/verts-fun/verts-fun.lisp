@@ -83,18 +83,39 @@
                                          (float far-clip)
                                          (float fov))))
 
+(defun get-internal-real-time-seconds ()
+  (float (/ (get-internal-real-time) internal-time-units-per-second)))
+
 (let ((frame 0)
-      (stepper (temporal-functions:make-stepper (temporal-functions:seconds 1))))
+      (stepper (temporal-functions:make-stepper (temporal-functions:seconds 1)))
+      (last-time (get-internal-real-time-seconds)))
   (defun calculate-fps ()
-    (incf frame 1)
-    (when (funcall stepper)
-      (setf *fps* frame
-            frame 0))
-    (setf *delta* (/ 1.0 *fps*))
-    (print *delta*)
-    (print *fps*)
+    (let* ((current-time (get-internal-real-time-seconds))
+           (delta-seconds (- current-time last-time))
+           (framerate (truncate (/ 1.0 delta-seconds))))
+      (setf last-time current-time)
+      (print (format nil "delta-seconds = ~a~%" delta-seconds))
+      (print (format nil "framerate = ~a~%" framerate))
+      (setf *fps* framerate
+            *delta* delta-seconds))
+
+    ;; (incf frame 1)
+    ;; (when (funcall stepper)
+    ;;   (setf *fps* frame
+    ;;         frame 0))
+    ;; (setf *delta* (/ 1.0 *fps*))
+
+    
+
+    
+    ;; (print *delta*)
+    ;; (print *fps*)
+
+    
     ;;(* (/ 0.5 internal-time-units-per-second) (get-internal-real-time))
     ))
+
+
 
 (defun main-loop ()
   (draw)
