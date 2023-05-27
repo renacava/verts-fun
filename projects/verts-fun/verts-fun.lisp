@@ -10,7 +10,7 @@
 (defparameter *fps* 1)
 (defparameter *delta* 1)
 (defparameter *camera* (make-instance 'camera))
-
+(defparameter *game-stopped-p* t)
 
 (defun-g vertex-shader-stage ((vert g-pnt)
                               &uniform (now :float)
@@ -108,10 +108,15 @@
   )
 
 (defun draw ()
+  (when *game-stopped-p*
+    (return-from draw))
   (clear)  
   (update-camera *camera*)
-  (setf (resolution (current-viewport))
-        (get-cepl-context-surface-resolution))
+  ;; (when (or (cepl.lifecycle:shutting-down-p)
+  ;;           (cepl.lifecycle:uninitialized-p))
+  ;;   (return-from draw))
+  ;; (setf (resolution (current-viewport))
+  ;;       (get-cepl-context-surface-resolution))
   (update-viewport-perspective-matrix)
   (with-instances 1
       (map-g #'cube-pipeline
@@ -126,16 +131,17 @@
   )
 
 (defun init (&optional (chunk-size 8) (chunk-height 8) (spacing 1.5))
-  (when t
-    (when *buffer-stream*
-      (free *buffer-stream*))
-    (when (getf *gpu-array* :verts)
-      (free (getf *gpu-array* :verts)))
-    (when (getf *gpu-array* :indices)
-      (free (getf *gpu-array* :indices)))
-    (setf *gpu-array* (cube-mesh-to-gpu-arrays (combine-cube-mesh-list (make-cool-chunk chunk-size chunk-height spacing))))
-    (setf *buffer-stream* (make-buffer-stream (getf *gpu-array* :verts)
-                                              :index-array (getf *gpu-array* :indices)))))
+  (when *buffer-stream*
+    (free *buffer-stream*))
+  (when (getf *gpu-array* :verts)
+    (free (getf *gpu-array* :verts)))
+  (when (getf *gpu-array* :indices)
+    (free (getf *gpu-array* :indices)))
+  (setf *gpu-array* (cube-mesh-to-gpu-arrays (combine-cube-mesh-list (make-cool-chunk chunk-size chunk-height spacing))))
+  (setf *buffer-stream* (make-buffer-stream (getf *gpu-array* :verts)
+                                            :index-array (getf *gpu-array* :indices)))
+  (step-host)
+  (setf *game-stopped-p* nil))
 
 (def-simple-main-loop play (:on-start (lambda () (init)))
   (main-loop))

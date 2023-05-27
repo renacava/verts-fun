@@ -31,10 +31,10 @@
     (unless (or (cepl.lifecycle:uninitialized-p)
                 (cepl.lifecycle:shutting-down-p))
       ;; (cepl:quit)
-      (in-package :cl-user)
-      (cepl:quit)
-      (in-package :verts-fun)
-      ))
+      (if *game-stopped-p*
+          (return-from update-camera)
+          (progn (setf *game-stopped-p* t)
+                 (play :stop)))))
   
   (when (mouse-button (mouse) mouse.left)
     (let* ((res (surface-resolution (current-surface (cepl-context))))
