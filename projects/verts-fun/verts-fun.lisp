@@ -182,7 +182,7 @@
         (loop for cube in cubes
               nconc (getf cube :indices))))
 
-(defun make-cool-chunk (width height &optional (spacing 1.2))
+(defun make-cool-chunk (width height &optional (spacing 1.0))
   (declare (fixnum width)
            (fixnum height))
   (let* ((positions (loop for x below width
@@ -193,13 +193,22 @@
                                                                (float z))))))
          ;; (positions
          ;;   (cull-invisible-block-positions positions))
-         (positions (mapcar (lambda (pos) (vec3 (* spacing (aref pos 0))
-                                                (* spacing (aref pos 1))
-                                                (* spacing (aref pos 2))))
-                            positions)))
+         ;; (positions (mapcar (lambda (pos) (vec3 (* spacing (aref pos 0))
+         ;;                                        (* spacing (aref pos 1))
+         ;;                                        (* spacing (aref pos 2))))
+         ;;                    positions))
+         (positions (remove-if-not #'block-at-pos? positions))  ;;grab only positions of blocks that aren't air
+         (positions (remove-if-not #'has-empty-neighbour? positions)) ;; of non-air blocks, grab only those that aren't surrounded by other blocks
+         
+         
+         )
     (loop for index below (length positions)
-          collect (make-cube-mesh :pos (elt positions index)
-                                  :vert-start-index (* index 8)))
+          collect (block-mesh-from-pos (elt positions index)
+                                       :vert-start-index (* index 8)
+                                       :spacing spacing))
+    ;; (loop for index below (length positions)
+    ;;       collect (make-cube-mesh :pos (elt positions index)
+    ;;                               :vert-start-index (* index 8)))
     ;; (loop for index below (length positions)
     ;;       collect (combine-side-mesh-list (construct-block-mesh-from-sides (get-empty-neighbours (elt positions index)) (* index 8))))
     ))
@@ -222,16 +231,21 @@
 
 (defun block-at-pos? (pos)
   "Returns T if there's a block at the given pos."
-  (< (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0)))))))
+  (and (< (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0))))))
+       (oddp (truncate (aref pos 2)))
+       (oddp (truncate (aref pos 1))))
+  ;;(> (aref pos 1) 1)
+  
+  )
 
 (defun has-empty-neighbour? (pos)
   "Returns T if the given pos has an empty neighbour in any of the cardinal directions."
-  (or (not (block-at-pos? (pos-above pos)))
-      (not (block-at-pos? (pos-below pos)))
-      (not (block-at-pos? (pos-ahead pos)))
-      (not (block-at-pos? (pos-behind pos)))
-      (not (block-at-pos? (pos-left pos)))
-      (not (block-at-pos? (pos-right pos)))))
+  (not (and (block-at-pos? (pos-above pos))
+            (block-at-pos? (pos-below pos))
+            (block-at-pos? (pos-ahead pos))
+            (block-at-pos? (pos-behind pos))
+            (block-at-pos? (pos-left pos))
+            (block-at-pos? (pos-right pos)))))
 
 (defun get-empty-neighbours (pos)
   (let ((empty-neighbours (list 'left 'right 'above 'below 'ahead 'behind)))
@@ -260,45 +274,11 @@
   )
 
 (defun side-to-face (side &optional (start-index 0))
-  "Returns a list of verts and indices, representing the given side of a block mesh."
-  (case side
-    ('left (list :verts (list (list (vec3 -0.5 -0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                              (list (vec3 -0.5 -0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                              (list (vec3 -0.5 0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                              (list (vec3 -0.5 0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0)))
-                 :indices (mapcar (lambda (index) (+ index start-index)) (list 2 1 3 3 1 0))))
-    ('right (list :verts (list (list (vec3 0.5 -0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                               (list (vec3 0.5 -0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                               (list (vec3 0.5 0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                               (list (vec3 0.5 0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0)))
-                  :indices (mapcar (lambda (index) (+ index start-index)) (list 3 0 2 2 1 0))))
-    ('above (list :verts (list (list (vec3 0.5 0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                               (list (vec3 0.5 0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                               (list (vec3 -0.5 0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                               (list (vec3 -0.5 0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0)))
-                  :indices (mapcar (lambda (index) (+ index start-index)) (list 2 3 0 0 3 1))))
-    ('below (list :verts (list (list (vec3 0.5 -0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                               (list (vec3 0.5 -0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                               (list (vec3 -0.5 -0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                               (list (vec3 -0.5 -0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0)))
-                  :indices (mapcar (lambda (index) (+ index start-index)) (list 3 2 1 1 2 0))))
-    ('ahead (list :verts (list (list (vec3  0.5 -0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                               (list (vec3  0.5 0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                               (list (vec3 -0.5 -0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                               (list (vec3 -0.5 0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0)))
-                  :indices (mapcar (lambda (index) (+ index start-index)) (list 1 0 3 3 0 2))))
-    ('behind (list :verts (list (list (vec3  0.5 -0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                                (list (vec3  0.5 0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                                (list (vec3 -0.5 -0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
-                                (list (vec3 -0.5 0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0)))
-                   :indices (mapcar (lambda (index) (+ index start-index)) (list 3 2 1 1 2 0))))))
-
-(defun side-to-face (side &optional (start-index 0))
   (list :verts (copy-tree *cube-mesh-data*)
         :indices (mapcar (lambda (x) (+ x start-index))
                          (case side
-                           ('left (list 7 4 5 5 6 7))
-                           ('right (list 3 0 1 1 2 0))
+                           ('left (list 5 4 7 7 6 5))
+                           ('right (list 3 1 2 0 1 3))
                            ('above (list 6 7 3 3 2 6))
                            ('below (list 5 1 0 0 4 5))
                            ('ahead (list 6 2 1 1 5 6))
@@ -308,6 +288,9 @@
   (list :verts (copy-tree *cube-mesh-data*)
         :indices (loop for side in side-mesh-list
                        nconc (getf side :indices))))
+
+(defun block-mesh-from-sides-list (sides-list &key (vert-start-index 0))
+  (combine-side-mesh-list (mapcar (lambda (side) (side-to-face side vert-start-index)) sides-list)))
 
 (defun pos-above (pos)
   (vec3 (aref pos 0)
@@ -338,3 +321,21 @@
   (vec3 (aref pos 0)
         (aref pos 1)
         (- (aref pos 2) 1.0)))
+
+(defun offset-mesh-by-pos (mesh pos &key (spacing 1.0))
+  "Offsets the positions of the verts in the given mesh according to the given pos."
+  (list
+   :verts (loop for vert in (getf mesh :verts)
+                collect (list
+                         (vec3 (+ (aref (first vert) 0) (* (aref pos 0) spacing))
+                               (+ (aref (first vert) 1) (* (aref pos 1) spacing))
+                               (+ (aref (first vert) 2) (* (aref pos 2) spacing)))
+                         (second vert)
+                         (third vert)))
+   :indices (getf mesh :indices)))
+
+(defun block-mesh-from-pos (pos &key (spacing 1.0) (vert-start-index 0))
+  "Returns an optimized block mesh based on the given pos."
+  (let ((empty-sides (get-empty-neighbours pos)))
+    (when empty-sides (offset-mesh-by-pos (block-mesh-from-sides-list empty-sides :vert-start-index vert-start-index) pos :spacing spacing)))
+  )
