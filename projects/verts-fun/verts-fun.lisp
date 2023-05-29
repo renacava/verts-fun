@@ -49,11 +49,6 @@
     (setf (clear-color (cepl-context)) (vec4 0.3 0.3 0.9 1.0))
     (play :start)))
 
-(defun main ()
-  (start)
-  (loop while (not (cepl.lifecycle:uninitialized-p))
-        do (sleep 0.1)))
-
 (defun stop ()
   (unless (or (cepl.lifecycle:shutting-down-p)
               (cepl.lifecycle:uninitialized-p))
@@ -115,8 +110,8 @@
   ;; (when (or (cepl.lifecycle:shutting-down-p)
   ;;           (cepl.lifecycle:uninitialized-p))
   ;;   (return-from draw))
-  ;; (setf (resolution (current-viewport))
-  ;;       (get-cepl-context-surface-resolution))
+  (setf (resolution (current-viewport))
+        (get-cepl-context-surface-resolution))
   (update-viewport-perspective-matrix)
   (with-instances 1
       (map-g #'cube-pipeline
@@ -127,10 +122,10 @@
           :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))))
   (swap)
   (step-host)
-  ;;(decay-events)
+  (decay-events)
   )
 
-(defun init (&optional (chunk-size 8) (chunk-height 8) (spacing 1.5))
+(defun init (&optional (chunk-size 96) (chunk-height 16) (spacing 1.0))
   (when *buffer-stream*
     (free *buffer-stream*))
   (when (getf *gpu-array* :verts)
@@ -157,18 +152,7 @@
                                   (list (vec3 -0.5 0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))))
 
 (defparameter *cube-mesh-indices* '(4 0 3 4 3 7 0 1 2 0 2 3 1 5 6 1 6 2 5 4 7 5 7 6 7 3 2 7 2 6 0 5 1 0 4 5))
-;; (defparameter *cube-mesh-indices-x* '(0 2 3 1 0 3))
 
-(defun make-cube-mesh (&key (size 1.0) (pos (vec3 0.0 0.0 0.0)) (vert-start-index 0))
-  (list :verts (mapcar (lambda (vert-col-uv) (list
-                                              (vec3 (* size (+ (aref pos 0) (aref (first vert-col-uv) 0)))
-                                                    (* size (+ (aref pos 1) (aref (first vert-col-uv) 1)))
-                                                    (* size (+ (aref pos 2) (aref (first vert-col-uv) 2))))
-                                              (second vert-col-uv)
-                                              (third vert-col-uv)))
-                       *cube-mesh-data*)
-        :indices (mapcar (lambda (x) (+ x vert-start-index))
-                         *cube-mesh-indices*)))
 
 (defun cube-mesh-to-gpu-arrays (cube-mesh)
   (list :verts (make-gpu-array (getf cube-mesh :verts) :element-type 'g-pnt)
@@ -191,106 +175,40 @@
                                                  collect (vec3 (float x)
                                                                (float y)
                                                                (float z))))))
-         ;; (positions
-         ;;   (cull-invisible-block-positions positions))
-         ;; (positions (mapcar (lambda (pos) (vec3 (* spacing (aref pos 0))
-         ;;                                        (* spacing (aref pos 1))
-         ;;                                        (* spacing (aref pos 2))))
-         ;;                    positions))
          (positions (remove-if-not #'block-at-pos? positions))  ;;grab only positions of blocks that aren't air
-         (positions (remove-if-not #'has-empty-neighbour? positions)) ;; of non-air blocks, grab only those that aren't surrounded by other blocks
-         
-         
-         )
+         (positions (remove-if-not #'has-empty-neighbour? positions)))  ;; of non-air blocks, grab only those that aren't surrounded by other blocks
     (loop for index below (length positions)
           collect (block-mesh-from-pos (elt positions index)
                                        :vert-start-index (* index 8)
-                                       :spacing spacing))
-    ;; (loop for index below (length positions)
-    ;;       collect (make-cube-mesh :pos (elt positions index)
-    ;;                               :vert-start-index (* index 8)))
-    ;; (loop for index below (length positions)
-    ;;       collect (combine-side-mesh-list (construct-block-mesh-from-sides (get-empty-neighbours (elt positions index)) (* index 8))))
-    ))
-
-(defun block-at-pos-on-chunk-edge? (pos chunk-width chunk-height)
-  "Returns t if the given pos corresponds to a block that's on the edge of the chunk."
-  (if (or (eq (aref pos 0) 0.0)
-          (eq (aref pos 0) (float (1- chunk-width)))
-          (eq (aref pos 1) 0.0)
-          (eq (aref pos 1) (float (1- chunk-height)))
-          (eq (aref pos 2) 0.0)
-          (eq (aref pos 2) (float (1- chunk-width))))
-      t))
-
-(defun cull-invisible-block-positions (positions)
-  (loop for pos in positions
-        nconcing (when (and (block-at-pos? pos)
-                            (has-empty-neighbour? pos))
-                   (list pos))))
+                                       :spacing spacing))))
 
 (defun block-at-pos? (pos)
   "Returns T if there's a block at the given pos."
   (and (< (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0))))))
-       (oddp (truncate (aref pos 2)))
-       (oddp (truncate (aref pos 1))))
-  ;;(> (aref pos 1) 1)
-  
-  )
+       t
+       ;;(oddp (truncate (aref pos 2)))
+       ;;(oddp (truncate (aref pos 1)))
+       ;;(oddp (truncate (aref pos 0)))
+       ;; (oddp (truncate (aref pos 2)))
+       ;; (oddp (truncate (aref pos 1)))
+       ))
 
-(defun has-empty-neighbour? (pos)
-  "Returns T if the given pos has an empty neighbour in any of the cardinal directions."
-  (not (and (block-at-pos? (pos-above pos))
-            (block-at-pos? (pos-below pos))
-            (block-at-pos? (pos-ahead pos))
-            (block-at-pos? (pos-behind pos))
-            (block-at-pos? (pos-left pos))
-            (block-at-pos? (pos-right pos)))))
 
-(defun get-empty-neighbours (pos)
-  (let ((empty-neighbours (list 'left 'right 'above 'below 'ahead 'behind)))
-    (when (block-at-pos? (pos-left pos))
-      (setf empty-neighbours (remove 'left empty-neighbours)))
-    (when (block-at-pos? (pos-right pos))
-      (setf empty-neighbours (remove 'right empty-neighbours)))
-    (when (block-at-pos? (pos-above pos))
-      (setf empty-neighbours (remove 'above empty-neighbours)))
-    (when (block-at-pos? (pos-below pos))
-      (setf empty-neighbours (remove 'below empty-neighbours)))
-    (when (block-at-pos? (pos-ahead pos))
-      (setf empty-neighbours (remove 'ahead empty-neighbours)))
-    (when (block-at-pos? (pos-behind pos))
-      (setf empty-neighbours (remove 'behind empty-neighbours)))
-    empty-neighbours))
 
-(defun construct-block-mesh-from-sides (sides &optional (starting-index 0))
-  "Returns a block mesh, vert index list and number of verts in the mesh, making only the faces provided."
-  (let ((result))
-    (dotimes (index (length sides))
-      (ntack result (side-to-face (elt sides index) (+ starting-index (* 8 index)))))
-    result)
-  ;; (loop for index below (length sides)
-  ;;       nconcing (side-to-face (elt sides index) (* 4 index)))
-  )
-
-(defun side-to-face (side &optional (start-index 0))
-  (list :verts (copy-tree *cube-mesh-data*)
-        :indices (mapcar (lambda (x) (+ x start-index))
-                         (case side
-                           ('left (list 5 4 7 7 6 5))
-                           ('right (list 3 1 2 0 1 3))
-                           ('above (list 6 7 3 3 2 6))
-                           ('below (list 5 1 0 0 4 5))
-                           ('ahead (list 6 2 1 1 5 6))
-                           ('behind (list 7 4 0 0 3 7))))))
-
-(defun combine-side-mesh-list (side-mesh-list)
-  (list :verts (copy-tree *cube-mesh-data*)
-        :indices (loop for side in side-mesh-list
-                       nconc (getf side :indices))))
-
-(defun block-mesh-from-sides-list (sides-list &key (vert-start-index 0))
-  (combine-side-mesh-list (mapcar (lambda (side) (side-to-face side vert-start-index)) sides-list)))
+(defun side-to-face-indices (side &optional (start-index 0))
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; left right above below ahead behind
+  ;; 0    1     2     3     4     5
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (declare (fixnum side))
+  (mapcar (lambda (x) (+ x start-index))
+          (case side
+            (0 (list 5 4 7 7 6 5))
+            (1 (list 3 1 2 0 1 3))
+            (2 (list 6 7 3 3 2 6))
+            (3 (list 5 1 0 0 4 5))
+            (4 (list 6 2 1 1 5 6))
+            (5 (list 7 4 0 0 3 7)))))
 
 (defun pos-above (pos)
   (vec3 (aref pos 0)
@@ -322,20 +240,39 @@
         (aref pos 1)
         (- (aref pos 2) 1.0)))
 
-(defun offset-mesh-by-pos (mesh pos &key (spacing 1.0))
-  "Offsets the positions of the verts in the given mesh according to the given pos."
-  (list
-   :verts (loop for vert in (getf mesh :verts)
-                collect (list
-                         (vec3 (+ (aref (first vert) 0) (* (aref pos 0) spacing))
-                               (+ (aref (first vert) 1) (* (aref pos 1) spacing))
-                               (+ (aref (first vert) 2) (* (aref pos 2) spacing)))
-                         (second vert)
-                         (third vert)))
-   :indices (getf mesh :indices)))
+(defun has-empty-neighbour? (pos)
+  "Returns T if the given pos has an empty neighbour in any of the cardinal directions."
+  (not (and (block-at-pos? (pos-above pos))
+            (block-at-pos? (pos-below pos))
+            (block-at-pos? (pos-ahead pos))
+            (block-at-pos? (pos-behind pos))
+            (block-at-pos? (pos-left pos))
+            (block-at-pos? (pos-right pos)))))
 
-(defun block-mesh-from-pos (pos &key (spacing 1.0) (vert-start-index 0))
+(let ((side-funcs (list #'pos-left #'pos-right #'pos-above #'pos-below #'pos-ahead #'pos-behind)))
+  (defun get-empty-neighbours (pos)
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; left right above below ahead behind
+    ;; 0    1     2     3     4     5
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (loop for side-func in side-funcs
+          for index fixnum from 0
+          unless (block-at-pos? (funcall side-func pos))
+          collect index)))
+
+(defun offset-cube-mesh-verts-by-pos (pos &key (spacing 1.0))
+  (loop for vert in *cube-mesh-data*
+        collect (list
+                 (vec3 (+ (aref (first vert) 0) (* (aref pos 0) spacing))
+                       (+ (aref (first vert) 1) (* (aref pos 1) spacing))
+                       (+ (aref (first vert) 2) (* (aref pos 2) spacing)))
+                 (second vert)
+                 (third vert))))
+
+(defun block-mesh-from-pos (pos &key (vert-start-index 0) (spacing 1.0))
   "Returns an optimized block mesh based on the given pos."
   (let ((empty-sides (get-empty-neighbours pos)))
-    (when empty-sides (offset-mesh-by-pos (block-mesh-from-sides-list empty-sides :vert-start-index vert-start-index) pos :spacing spacing)))
-  )
+    (when empty-sides 
+      (list :verts (offset-cube-mesh-verts-by-pos pos :spacing spacing)
+            :indices (loop for side in empty-sides
+                           nconcing (side-to-face-indices side vert-start-index))))))
