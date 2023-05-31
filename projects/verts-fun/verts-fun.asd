@@ -6,7 +6,7 @@
   :license  "Specify license here"
   :version "0.0.1"
   :depends-on (#:cepl.sdl2 #:nineveh #:temporal-functions
-                           #:cepl.skitter.sdl2)
+                           #:cepl.skitter.sdl2 #:dirt)
   :serial t
   :components ((:file "package")
                (:file "utilities")

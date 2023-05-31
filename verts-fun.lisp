@@ -29,21 +29,16 @@
          (pos (* cam-rot pos)))
     ;; (* perspective (v! pos 1))
     (values (* perspective (v! pos 1.0))
-            (:smooth colour)
-            (tex vert)
-            )))
+            (:smooth colour))))
 
-(defun-g fragment-shader-stage ((colour :vec3)
-                                (uv :vec2)
-                                &uniform (2d-sampler :sampler-2d))
-  ;;(v! colour 1.0)
-  (texture 2d-sampler uv)
+(defun-g fragment-shader-stage ((colour :vec3))
+  (v! colour 1.0)
   ;;(v! 0.5 0.5 0.5 0)
   )
 
 (defpipeline-g cube-pipeline ()
   :vertex (vertex-shader-stage g-pnt)
-  :fragment (fragment-shader-stage :vec3 :vec2))
+  :fragment (fragment-shader-stage :vec3))
 
 (defun start (&key (x 400) (y 300) (title "verts-fun"))
   ;; (start-cepl :x x :y y :title title)
@@ -124,8 +119,7 @@
           :now (now)
           :perspective *perspective-matrix*
           :cam-pos (pos *camera*)
-          :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
-          :2d-sampler *texture-sampler*))
+          :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))))
   (swap)
   (step-host)
   (decay-events)
@@ -138,9 +132,7 @@
     (free (getf *gpu-array* :verts)))
   (when (getf *gpu-array* :indices)
     (free (getf *gpu-array* :indices)))
-  (let ((moon-texture (dirt:load-image-to-texture "projects/verts-fun/alignment.png")))
-    (when moon-texture
-      (defparameter *texture-sampler* (sample moon-texture :minify-filter :nearest-mipmap-nearest :magnify-filter :nearest))))
+  (defparameter *texture-sampler* (sample ))
   (setf *gpu-array* (cube-mesh-to-gpu-arrays (combine-cube-mesh-list (make-cool-chunk chunk-size chunk-height spacing))))
   (setf *buffer-stream* (make-buffer-stream (getf *gpu-array* :verts)
                                             :index-array (getf *gpu-array* :indices)))
@@ -151,14 +143,14 @@
   (main-loop))
 
 (defparameter *cube-mesh-data* (list
-                                  (list (vec3 0.5 -0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 0.0 1.0)) ;; right-bottom-back
-                                  (list (vec3 0.5 -0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0)) ;; right-bottom-front
-                                  (list (vec3 0.5 0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 0.0 1.0)) ;; right-top-front
-                                  (list (vec3 0.5 0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 1.0)) ;; right-top-back
-                                  (list (vec3 -0.5 -0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 0.0 0.0)) ;; left-bottom-back
-                                  (list (vec3 -0.5 -0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0)) ;; left-bottom-front
-                                  (list (vec3 -0.5 0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 1.0)) ;; left-top-front
-                                  (list (vec3 -0.5 0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 0.0 1.0)))) ;; left-top-back
+                                  (list (vec3 0.5 -0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
+                                  (list (vec3 0.5 -0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
+                                  (list (vec3 0.5 0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
+                                  (list (vec3 0.5 0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
+                                  (list (vec3 -0.5 -0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
+                                  (list (vec3 -0.5 -0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
+                                  (list (vec3 -0.5 0.5 -0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))
+                                  (list (vec3 -0.5 0.5 0.5) (vec3 0.0 -1.0 0.0) (vec2 1.0 0.0))))
 
 (defparameter *cube-mesh-indices* '(4 0 3 4 3 7 0 1 2 0 2 3 1 5 6 1 6 2 5 4 7 5 7 6 7 3 2 7 2 6 0 5 1 0 4 5))
 
