@@ -35,9 +35,12 @@
 
 (defun-g fragment-shader-stage ((colour :vec3)
                                 (uv :vec2)
-                                &uniform (2d-sampler :sampler-2d))
+                                &uniform
+                                (now :float)
+                                (2d-sampler :sampler-2d))
   ;;(v! colour 1.0)
-  (texture 2d-sampler uv)
+  (texture 2d-sampler (vec2 (aref uv 0)
+                            (+ (aref uv 1) now)))
   ;;(v! 0.5 0.5 0.5 0)
   )
 
@@ -142,9 +145,9 @@
   (window-set-title "verts-fun")
   (setf (cepl:depth-test-function) #'<=)
   (setf (clear-color (cepl-context)) (vec4 0.3 0.3 0.9 1.0))
-  (let ((moon-texture (dirt:load-image-to-texture (find-file "jade-moon.jpg"))))
-    (when moon-texture
-      (defparameter *texture-sampler* (sample moon-texture :minify-filter :nearest-mipmap-nearest :magnify-filter :nearest))))
+  (let ((chunk-texture (dirt:load-image-to-texture (find-file "tiles.png"))))
+    (when chunk-texture
+      (defparameter *texture-sampler* (sample chunk-texture :minify-filter :nearest-mipmap-nearest :magnify-filter :nearest))))
   (setf *gpu-array* (cube-mesh-to-gpu-arrays (combine-cube-mesh-list (make-cool-chunk chunk-size chunk-height spacing))))
   (setf *buffer-stream* (make-buffer-stream (getf *gpu-array* :verts)
                                             :index-array (getf *gpu-array* :indices)))
