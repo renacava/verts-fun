@@ -6,9 +6,13 @@
   :license  "Specify license here"
   :version "0.0.1"
   :depends-on (#:cepl.sdl2 #:nineveh #:temporal-functions
-                           #:cepl.skitter.sdl2 #:dirt)
+                           #:cepl.skitter.sdl2 #:dirt #:rtg-math)
   :serial t
   :components ((:file "package")
+               (:file "cube")
+               (:file "world-query")
                (:file "utilities")
                (:file "camera")
-               (:file "verts-fun")))
+               (:file "load-file")
+               (:file "verts-fun")
+               ))
