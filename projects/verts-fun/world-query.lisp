@@ -4,11 +4,36 @@
   "Returns T if there's a block at the given pos."
   (and (< (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0))))))
        t
+       (oddp (truncate (aref pos 2)))
+       (oddp (truncate (aref pos 1)))
+       (oddp (truncate (aref pos 0)))
+       ))
+
+(defun block-at-pos? (pos)
+  "Returns T if there's a block at the given pos."
+  (and (< (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0))))))
+       t
+       (oddp (truncate (aref pos 2)))
+       (oddp (truncate (aref pos 1)))
+       ;;(oddp (truncate (aref pos 0)))
+       ))
+
+(defun block-at-pos? (pos)
+  "Returns T if there's a block at the given pos."
+  (and (< (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0))))))
+       t
+       (oddp (truncate (aref pos 2)))
+       ;;(oddp (truncate (aref pos 1)))
+       ;;(oddp (truncate (aref pos 0)))
+       ))
+
+(defun block-at-pos? (pos)
+  "Returns T if there's a block at the given pos."
+  (and (< (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0))))))
+       t
        ;;(oddp (truncate (aref pos 2)))
        ;;(oddp (truncate (aref pos 1)))
        ;;(oddp (truncate (aref pos 0)))
-       ;; (oddp (truncate (aref pos 2)))
-       ;; (oddp (truncate (aref pos 1)))
        ))
 
 (defun pos-above (pos)

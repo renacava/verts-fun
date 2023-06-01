@@ -6,7 +6,8 @@
   :license  "Specify license here"
   :version "0.0.1"
   :depends-on (#:cepl.sdl2 #:nineveh #:temporal-functions
-                           #:cepl.skitter.sdl2 #:dirt #:rtg-math)
+                           #:cepl.skitter.sdl2 #:dirt #:rtg-math
+                           #:sdl2-game-controller-db)
   :serial t
   :components ((:file "package")
                (:file "cube")

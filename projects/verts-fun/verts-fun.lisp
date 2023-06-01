@@ -20,6 +20,9 @@
   (let* ((id gl-instance-id)
          (now (+ now id))
          (pos (pos vert))
+         ;; (pos (vec3 (+ (aref pos 0) (* 0.2 (cos (* 2.5 now))))
+         ;;            (+ (aref pos 1) (* 0.2 (sin (* 3 now))))
+         ;;            (aref pos 2)))
 
          (colour (vec3 (* (mod (aref pos 0) (+ 1.2 (sin (* 0.15 now)))) (+ 1.0 (sin (* 2 now))))
                        (* (mod (aref pos 1) (+ 1.2 (sin (* 0.05 now)))) (+ 1.0 (sin (* 3 now))))
@@ -39,8 +42,14 @@
                                 (now :float)
                                 (2d-sampler :sampler-2d))
   ;;(v! colour 1.0)
-  (texture 2d-sampler (vec2 (aref uv 0)
-                            (+ (aref uv 1) now)))
+  (let* ((result (texture 2d-sampler uv))
+         (result (vec3 (aref result 0)
+                       (+ (aref result 1) (* 0.2 (sin (* 3 now))))
+                       (aref result 2))))
+    result)
+  ;; (texture 2d-sampler (vec2 (aref uv 0)
+  ;;                           (+ (aref uv 1) now
+  ;;                              )))
   ;;(v! 0.5 0.5 0.5 0)
   )
 
