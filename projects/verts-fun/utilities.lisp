@@ -1,10 +1,12 @@
 (in-package :verts-fun)
 
-(defun flatten (structure)
-  "Transforms any arbitrarily nested list into a flat list"
-  (cond ((null structure) nil)
-	((atom structure) (list structure))
-	(t (mapcan #'flatten structure))))
+;; (defun flatten (structure)
+;;   "Transforms any arbitrarily nested list into a flat list"
+;;   (cond ((null structure) nil)
+;; 	((atom structure) (list structure))
+;; 	(t (mapcan #'flatten structure))))
+
+
 
 (defun tack (place obj)
   "Tacks place at the end of obj, returns a proper list"
@@ -36,15 +38,15 @@
   "Returns true if the elements at the given index of each sequence are equal."
   (equal (elt sequence1 index) (elt sequence2 index)))
 
-(defun get-element-before-branch (sequence1 sequence2)
+(defun last-common (sequence1 sequence2)
   "Scans two lists for their first difference, and returns the item before that.
-Eg: (get-element-before-branch '(1 2 6 2) '(1 2 4 9)) => 2"
+Eg: (last-common '(1 2 6 2) '(1 2 4 9)) => 2"
   (let ((last-common nil))
-    (loop for i from 0 to (1- (shortest-length sequence1 sequence2)) do
-          (if (same-at-index? sequence1 sequence2 i)
-              (setf last-common (elt sequence1 i))
-              (return)))
-    last-common))
+    (loop for i from 0 to (1- (shortest-length sequence1 sequence2))
+          do (if (same-at-index? sequence1 sequence2 i)
+                 (setf last-common i)
+                 (return)))
+    (elt sequence1 last-common)))
 
 (defun add-margin (box margin)
   "Add some margin to a list of 4 elements, being the x, y, width and height of the box"
@@ -70,7 +72,7 @@ Eg: (get-element-before-branch '(1 2 6 2) '(1 2 4 9)) => 2"
 (defun range (length &optional (start-from 0))
   "Creates a list from start-from to length"
   (declare (fixnum length))
-  (loop for i upto (- length 1)
+  (loop for i below length
         append (list (+ i start-from))))
 
 (defun range-from-list (sequence &optional (start 0))
@@ -170,6 +172,7 @@ Eg: (get-element-before-branch '(1 2 6 2) '(1 2 4 9)) => 2"
   "Sort a sequence based on predicate, the original sequence stays untouched"
   (sort (copy-tree sequence) predicate))
 
+(proclaim '(inline enlist))
 (defun enlist (item)
   "Transforms item into a list if it isn't one already"
   (if (listp item)
@@ -743,6 +746,18 @@ It works because Common Lisp passes everything by value, not by reference, excep
           and
           collect (1+ index))))
 
+(defun extract-property-list (sequence)
+  "Extracts the property-key / value pairs from the given list, returning a property list from a malformed one. Unless you give a list with no property-key/value pairs, in which case it returns nil."
+  (let ((length (1- (length sequence))))
+    (loop for item in sequence
+          for index from 0
+          when (and
+                (keywordp item)
+                (< index length))
+          collect (nth index sequence)
+          and
+          collect (1+ index))))
+
 ;; (defun extract-property-list (sequence)
 ;;   "Extracts the property-key / value pairs from the given list, returning a property list from a malformed one. Unless you give a list with no property-key/value pairs, in which case it returns nil."
 ;;   (when (functionp sequence)
@@ -1235,3 +1250,154 @@ It works because Common Lisp passes everything by value, not by reference, excep
           do (when (> i highest)
                (setf highest i)))
     highest))
+
+(proclaim '(inline singlep append1 nconc1))
+(defun singlep (sequence)
+  "Returns T if the given sequence has only 1 item."
+  (and (consp sequence) (not (cdr sequence))))
+
+(defun append1 (sequence object)
+  "Appends a single non-list object to the end of the given sequence."
+  (append sequence (list object)))
+
+(defun nconc1 (sequence object)
+  "nconc's the given non-list object to the end of the given sequence."
+  (nconc sequence (list object)))
+
+(defun filter (sequence func)
+  "Returns a list of all non-nil return-values from applying func to each item in the given sequence. eg:(filter '((list :x 10) (list :x 12) (list :y 5)) (lambda (item) (getf item :x)) => '(10 12))"
+  (let ((accumulation nil))
+    (dolist (item sequence)
+      (let ((result (funcall func item)))
+        (when result
+          (push result accumulation))))
+    (nreverse accumulation)))
+
+(defun group (sequence group-size)
+  "Returns a list of sublists, where each sublist is of length group-size, and the last element of the list is the remainder. eg:(group '(1 2 3 4 5) 2) => ((1 2) (3 4) (5))"
+  (if (zerop group-size) (error "Can't divide sequence into lists of length 0."))
+  (labels ((recurse (seq accumulation)
+             (let ((rest (nthcdr group-size seq)))
+               (if (consp rest)
+                   (recurse rest (cons (subseq seq 0 group-size) accumulation))
+                   (nreverse (cons seq accumulation))))))
+    (if sequence
+        (recurse sequence nil)
+        nil)))
+
+(defun longer (sequence1 sequence2)
+  "Returns T when sequence1 is longer than sequence2."
+  (labels ((compare (x y)
+             (and (consp x)
+                  (or (null y)
+                      (compare (cdr x) (cdr y))))))
+    (if (and (listp sequence1)
+             (listp sequence2))
+        (compare sequence1 sequence2)
+        (> (length sequence1) (length sequence2)))))
+
+(defun flatten (tree)
+  "Returns a list of all the atoms in the given tree (or any structure)"
+  (labels ((rec (item acc)
+             (cond ((null item) acc)
+                   ((atom item) (cons item acc))
+                   (t (rec (car item) (rec (cdr item) acc))))))
+    (rec tree nil)))
+
+(defun prune (test tree)
+  "Returns the given tree after removing all atoms that pass the given test."
+  (labels ((rec (inner-tree acc)
+             (cond ((null inner-tree) (nreverse acc))
+                   ((consp (car inner-tree))
+                    (rec (cdr inner-tree)
+                         (cons (rec (car inner-tree) nil) acc)))
+                   (t (rec (cdr inner-tree)
+                           (if (funcall test (car inner-tree))
+                               acc
+                               (cons (car inner-tree) acc)))))))
+    (rec tree nil)))
+
+(defun before (x y sequence &key (test #'eql))
+  "Returns the cdr of the given sequence if x occurs in it before y, else nil. Remember, you can test the return of this func for T, the cdr is just potentially useful extra info."
+  (and sequence
+       (let ((first (car sequence)))
+         (cond ((funcall test y first) nil)
+               ((funcall test x first) sequence)
+               (t (before x y (cdr sequence) :test test))))))
+
+(defun after (x y sequence &key (test #'eql))
+  "Returns the cdr of the given sequence from x, if x occurs after y, and both x and y occur in the given sequence. Else nil."
+  (let ((rest (before y x sequence :test test)))
+    (and rest (member x rest :test test))))
+
+(defun duplicate-p (object sequence &key (test #'eql))
+  "Returns the remainder of the given sequence, if the given object occurs more than once in the given sequence."
+  (member object (cdr (member object sequence :test test))
+          :test test))
+(defun split-if (func sequence)
+  "Returns 2 values: the given sequence before and the given sequence after the given func returns T on an element in the given sequence. eg:(split-if #'oddp '(2 4 6 7 8 10 11 12 13) => (2 4 6) (7 8 10 11 12 3))"
+  (let ((acc nil))
+    (do ((source sequence (cdr source)))
+        ((or (null source) (funcall func (car source)))
+         (values (nreverse acc) source))
+      (push (car source) acc))))
+
+(defun most (func sequence)
+  "Returns the item in the given sequence that returns the highest number when the given func is applied to it, along with the number the func returned. eg:(most #'length '((a b) (a b c) (a) (e f g))) => (A B C) 3. In case of ties, the first element wins."
+  (if (null sequence)
+      (values nil nil)
+      (let* ((wins (car sequence))
+             (max (funcall func wins)))
+        (dolist (item (cdr sequence))
+          (let ((score (funcall func item)))
+            (when (> score max)
+              (setq wins item
+                    max score))))
+        (values wins max))))
+
+(defun best (func sequence)
+  "Returns the item in the given sequence which, when the given func is applied to it, returned the highest number. Func must take two arguments (so we can compare items). eg:(best #'> '(5 2 8 4 9 1)) => 9. #'best can be thought of as (car (sort func sequence)), but a lot more efficient! In case of ties, the first element wins."
+  (if (null sequence)
+      nil
+      (let ((wins (car sequence)))
+        (dolist (item (cdr sequence))
+          (if (funcall func item wins)
+              (setq wins item)))
+        wins)))
+
+(defun mostn (func sequence)
+  "Returns a list of the top n scoring items (and their score) in the given sequence, when func is applied to the item. This is like #'most, but it returns a list of ties instead of just the first occuring highest scoring item."
+  (if (null sequence)
+      (values nil nil)
+      (let ((result (list (car sequence)))
+            (max (funcall func (car sequence))))
+        (dolist (item (cdr sequence))
+          (let ((score (funcall func item)))
+            (cond ((> score max)
+                   (setq max score
+                         result (list item)))
+                  ((= score max)
+                   (push item result)))))
+        (values (nreverse result) max))))
+
+(defun mapa-b (func a b &optional (step 1))
+  "Applies the given func to a range of numbers from a to b, without consing up a list to contain them. eg:(mapa-b #'1+ 2 1 0.5) => (-1 -0.5 0.0 0.5 1.0)"
+  (do ((i a (+ i step))
+       (result nil))
+      ((> i b) (nreverse result))
+    (push (funcall func i) result)))
+
+(defun map0-n (func n)
+  "Applies the given func to a range of numbers without consing up a list to contain them, from 0 to n. eg:(map0-n #'1+ 3) => (1 2 3 4)"
+  (mapa-b func 0 n))
+
+(defun map1-n (func n)
+  "Applies the given func to a range of numbers without consing up a list to contain them, from 1 to n. eg:(map1-n #'1+ 3) => (2 3 4)"
+  (mapa-b func 1 n))
+
+(defun map-> (func start end-test-func incrementor-func)
+  "Applies the given func to a sequence created from the given start, until an item is generated that satisfies the given end-test-func, using the incrementor-func to generate successive items for the sequence. eg:(map-> #'1+ -1 (lambda (x) (= x 2)) #'1+) => (0 1 2)"
+  (do ((i start (funcall incrementor-func i))
+       (result nil))
+      ((funcall end-test-func i) (nreverse result))
+    (push (funcall func i) result)))
