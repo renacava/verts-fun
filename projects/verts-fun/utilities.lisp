@@ -1401,3 +1401,13 @@ It works because Common Lisp passes everything by value, not by reference, excep
        (result nil))
       ((funcall end-test-func i) (nreverse result))
     (push (funcall func i) result)))
+
+(declaim (inline half))
+(defun half (x)
+  "Returns (* 0.5 x"
+  (* 0.5 x))
+
+(declaim (inline average))
+(defun average (&rest values)
+  "Returns the average of the given numeric values."
+  (float (/ (reduce #'+ values) (length values))))

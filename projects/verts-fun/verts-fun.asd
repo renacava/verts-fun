@@ -10,10 +10,12 @@
                            #:sdl2-game-controller-db)
   :serial t
   :components ((:file "package")
+               (:file "materials")
                (:file "cube")
                (:file "world-query")
                (:file "utilities")
                (:file "camera")
                (:file "load-file")
                (:file "verts-fun")
+               
                ))
