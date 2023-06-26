@@ -1402,6 +1402,10 @@ It works because Common Lisp passes everything by value, not by reference, excep
       ((funcall end-test-func i) (nreverse result))
     (push (funcall func i) result)))
 
+(defun hash-table-print (hash-table)
+  "Prints the given hash-table to standard-output"
+  (maphash (lambda (key value) (format t "~a: ~a~%" key value)) hash-table))
+
 (declaim (inline half))
 (defun half (x)
   "Returns (* 0.5 x"
@@ -1411,3 +1415,21 @@ It works because Common Lisp passes everything by value, not by reference, excep
 (defun average (&rest values)
   "Returns the average of the given numeric values."
   (float (/ (reduce #'+ values) (length values))))
+
+(defun string-to-list (string)
+  "Returns a list of chars made from the given string."
+  (loop for char-index below (length string)
+        collect (char string char-index)))
+
+(defun string-split (string delimiter-char &optional from-end?)
+  "Returns"
+  (let ((found-pos (position delimiter-char (string-to-list string))))
+    (if found-pos
+        (values
+         (subseq string 0 (if from-end?
+                              (- (length string) found-pos)
+                              found-pos))
+         (subseq string (if from-end?
+                            (- (length string) found-pos 1)
+                            found-pos)))
+        string)))

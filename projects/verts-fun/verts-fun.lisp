@@ -5,8 +5,6 @@
 (defvar *buffer-stream* nil)
 (defvar *gpu-array* nil)
 (defvar *perspective-matrix* nil)
-;; (defvar *cam-pos* (v! 0 0 0))
-;; (defvar *cam-rot* (q:identity))
 (defparameter *fps* 1)
 (defparameter *delta* 1)
 (defparameter *camera* (make-instance 'camera))
@@ -17,12 +15,7 @@
                               (perspective :mat4)
                               (cam-pos :vec3)
                               (cam-rot :mat3))
-  (let* ((id gl-instance-id)
-         (now (+ now id))
-         (pos (pos vert))
-         ;; (pos (vec3 (+ (aref pos 0) (* 0.2 (cos (* 2.5 now))))
-         ;;            (+ (aref pos 1) (* 0.2 (sin (* 3 now))))
-         ;;            (aref pos 2)))
+  (let* ((pos (pos vert))
 
          (colour (vec3 (* (mod (aref pos 0) (+ 1.2 (sin (* 0.15 now)))) (+ 1.0 (sin (* 2 now))))
                        (* (mod (aref pos 1) (+ 1.2 (sin (* 0.05 now)))) (+ 1.0 (sin (* 3 now))))
@@ -30,7 +23,6 @@
                        ))
          (pos (- pos cam-pos))
          (pos (* cam-rot pos)))
-    ;; (* perspective (v! pos 1))
     (values (* perspective (v! pos 1.0))
             (:smooth colour)
             (tex vert)
@@ -46,24 +38,14 @@
          (result (vec3 (aref result 0)
                        (+ (aref result 1) (* 0.2 (sin (* 3 now))))
                        (aref result 2))))
-    result)
-  ;; (texture 2d-sampler (vec2 (aref uv 0)
-  ;;                           (+ (aref uv 1) now
-  ;;                              )))
-  ;;(v! 0.5 0.5 0.5 0)
-  )
+    result))
 
 (defpipeline-g cube-pipeline ()
   :vertex (vertex-shader-stage g-pnt)
   :fragment (fragment-shader-stage :vec3 :vec2))
 
 (defun start (&key (x 400) (y 300) (title "verts-fun"))
-  ;; (start-cepl :x x :y y :title title)
   (when (cepl:repl x y)
-    ;; (setf (cepl.sdl2::vsync) t)
-    ;; (window-set-title title)
-    ;; (setf (cepl:depth-test-function) #'<=)
-    ;; (setf (clear-color (cepl-context)) (vec4 0.3 0.3 0.9 1.0))
     (play :start)))
 
 (defun stop ()
@@ -71,7 +53,7 @@
               (cepl.lifecycle:uninitialized-p))
     (cepl:quit)))
 
-(defun window-set-title (title)
+(defun window-title-set (title)
   (setf (cepl:surface-title (cepl:current-surface)) (format nil "~a" title)))
 
 (defun now ()
@@ -111,37 +93,49 @@
             *delta* delta-seconds))))
 
 (defun main-loop ()
+  "Contains calls to all things that should occur once per frame, like drawing."
   (when (or (cepl.lifecycle:shutting-down-p)
             (cepl.lifecycle:uninitialized-p))
     (play :stop)
     (return-from main-loop))
   (draw)
-  (calculate-fps)
-  )
+  (calculate-fps))
 
 (defun draw ()
+  "Called one per-frame, this is where everything is drawn."
   (when *game-stopped-p*
     (return-from draw))
   (clear)  
   (update-camera *camera*)
-  ;; (when (or (cepl.lifecycle:shutting-down-p)
-  ;;           (cepl.lifecycle:uninitialized-p))
-  ;;   (return-from draw))
   (setf (resolution (current-viewport))
         (get-cepl-context-surface-resolution))
   (update-viewport-perspective-matrix)
-  (with-instances 1
-      (map-g #'cube-pipeline
-          *buffer-stream*
-          :now (now)
-          :perspective *perspective-matrix*
-          :cam-pos (pos *camera*)
-          :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
-          :2d-sampler *texture-sampler*))
+  (map-g #'cube-pipeline
+         *buffer-stream*
+         :now (now)
+         :perspective *perspective-matrix*
+         :cam-pos (pos *camera*)
+         :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
+         :2d-sampler *jade-sampler*)
   (swap)
   (step-host)
-  (decay-events)
-  )
+  (decay-events))
+
+(defun vsync-set (bool)
+  "Turns vsync on/off, if given bool is t/nil."
+  (setf (cepl.sdl2::vsync) bool))
+
+(defun sky-colour-set (&optional (colour (list 0.3 0.3 0.9)))
+  "Sets the sky-colour to the given colour."
+  (setf (clear-color (cepl-context))
+        (vec4 (float (first colour))
+              (float (second colour))
+              (float (third colour))
+              1.0)))
+
+(defun depth-func-set (&optional (depth-func #'<=))
+  "Sets the opengl depth-test function to the given depth-func."
+  (setf (cepl:depth-test-function) depth-func))
 
 (defun init (&optional (chunk-size 96) (chunk-height 16) (spacing 1.0))
   (when *buffer-stream*
@@ -150,13 +144,14 @@
     (free (getf *gpu-array* :verts)))
   (when (getf *gpu-array* :indices)
     (free (getf *gpu-array* :indices)))
-  (setf (cepl.sdl2::vsync) t)
-  (window-set-title "verts-fun")
-  (setf (cepl:depth-test-function) #'<=)
-  (setf (clear-color (cepl-context)) (vec4 0.3 0.3 0.9 1.0))
-  (let ((chunk-texture (dirt:load-image-to-texture (find-file "tiles.png"))))
-    (when chunk-texture
-      (defparameter *texture-sampler* (sample chunk-texture :minify-filter :nearest-mipmap-nearest :magnify-filter :nearest))))
+  (vsync-set t)
+  (window-title-set "verts-fun")
+  (depth-func-set #'<=)
+  (sky-colour-set (list 0.3 0.3 0.9))
+  
+  (defparameter *tile-sampler* (sampler-from-filename "tiles.png"))
+  (defparameter *jade-sampler* (sampler-from-filename "jade-moon.jpg"))
+  
   (setf *gpu-array* (cube-mesh-to-gpu-arrays (combine-cube-mesh-list (make-cool-chunk chunk-size chunk-height spacing))))
   (setf *buffer-stream* (make-buffer-stream (getf *gpu-array* :verts)
                                             :index-array (getf *gpu-array* :indices)))
