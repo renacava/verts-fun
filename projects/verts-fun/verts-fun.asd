@@ -17,6 +17,7 @@
                (:file "cube")
                (:file "mesh")
                (:file "texture")
+               (:file "text")
                (:file "world-query")
                (:file "camera")
                (:file "verts-fun")

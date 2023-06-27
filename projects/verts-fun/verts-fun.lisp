@@ -116,7 +116,7 @@
          :perspective *perspective-matrix*
          :cam-pos (pos *camera*)
          :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
-         :2d-sampler *jade-sampler*)
+         :2d-sampler *text-sampler*)
   (swap)
   (step-host)
   (decay-events))
@@ -148,9 +148,11 @@
   (window-title-set "verts-fun")
   (depth-func-set #'<=)
   (sky-colour-set (list 0.3 0.3 0.9))
+  (text-init-sampler)
   
   (defparameter *tile-sampler* (sampler-from-filename "tiles.png"))
   (defparameter *jade-sampler* (sampler-from-filename "jade-moon.jpg"))
+  ;; (defparameter *text-sampler* (sampler-from-filename "fonts/default.bmp"))
   
   (setf *gpu-array* (cube-mesh-to-gpu-arrays (combine-cube-mesh-list (make-cool-chunk chunk-size chunk-height spacing))))
   (setf *buffer-stream* (make-buffer-stream (getf *gpu-array* :verts)
