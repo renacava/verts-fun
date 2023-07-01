@@ -126,7 +126,7 @@
     (map-g #'gui-pipeline
            (multiple-value-bind
                  (verts indices)
-               (rect-mesh :u-start (/ 1.0 16) :v-start (/ 1.0 16) :u-end (/ 1.0 4) :v-end (/ 1.0 8))
+               (text-mesh-from-char 'a)
              (make-buffer-stream
               verts
               :index-array indices
@@ -166,7 +166,8 @@
   (vsync-set t)
   (window-title-set "verts-fun")
   (depth-func-set #'<=)
-  (sky-colour-set (list 0.3 0.3 0.9))
+  ;;  (sky-colour-set (list 0.3 0.3 0.9))
+  (sky-colour-set '(0 0 0))
   (text-init-sampler)
   
   (defparameter *tile-sampler* (sampler-from-filename "tiles.png"))
