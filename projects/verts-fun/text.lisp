@@ -68,16 +68,26 @@
                              :v-end (+ step (* test-row step)))
                 (setf (gethash char text-meshes) (list verts indices)))
               (gethash char text-meshes)))))
+
+    (let ((buffer-func (cache-func
+                        (lambda (char)
+                          (let ((mesh (text-mesh-from-char char)))
+                            (make-buffer-stream (first mesh)
+                                                :index-array (second mesh)
+                                                :retain-arrays t))))))
+      (defun text-buffer-stream-from-char (char)
+        (funcall buffer-func char)))
     
-    (defun text-buffer-stream-from-char (char)
-      (multiple-value-bind (result found?) (gethash char text-buffers)
-        (if found?
-            result
-            (let ((mesh (text-mesh-from-char char)))
-              (setf (gethash char text-buffers)
-                    (make-buffer-stream (first mesh)
-                                        :index-array (second mesh)
-                                        :retain-arrays t))
-              (gethash char text-buffers))))))
+    ;; (defun text-buffer-stream-from-char (char)
+    ;;   (multiple-value-bind (result found?) (gethash char text-buffers)
+    ;;     (if found?
+    ;;         result
+    ;;         (let ((mesh (text-mesh-from-char char)))
+    ;;           (setf (gethash char text-buffers)
+    ;;                 (make-buffer-stream (first mesh)
+    ;;                                     :index-array (second mesh)
+    ;;                                     :retain-arrays t))
+    ;;           (gethash char text-buffers)))))
+    )
 
   (text-init-char-indices))

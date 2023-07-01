@@ -124,7 +124,7 @@
            :2d-sampler *text-sampler*)
 
     (map-g #'gui-pipeline
-           (text-buffer-stream-from-char #\?)
+           (text-buffer-stream-from-char #\F)
            :perspective *perspective-matrix*
            :2d-sampler *text-sampler*))
   

@@ -1,13 +1,5 @@
 (in-package :verts-fun)
 
-;; (defun flatten (structure)
-;;   "Transforms any arbitrarily nested list into a flat list"
-;;   (cond ((null structure) nil)
-;; 	((atom structure) (list structure))
-;; 	(t (mapcan #'flatten structure))))
-
-
-
 (defun tack (place obj)
   "Tacks place at the end of obj, returns a proper list"
   (if (and
@@ -1444,3 +1436,12 @@ It works because Common Lisp passes everything by value, not by reference, excep
                result
                (setf (gethash '(,@cut-args) cache) ,@body)))
          (gethash '(,@cut-args) cache)))))
+
+(defun cache-func (func)
+  "Returns the given func after setting it up to cache its results. If you call the function with the same args more than once, it fetches a cached result and returns that instead of recalculating things."
+  (let ((cache (make-hash-table :test #'equal)))
+    (lambda (args)
+      (multiple-value-bind (result found?) (gethash args cache)
+        (if found?
+            result
+            (setf (gethash args cache) (apply func (enlist args))))))))
