@@ -1,0 +1,39 @@
+=================================================================================
+Invalid index 17 for (SIMPLE-VECTOR 17), should be a non-negative integer below 17.
+   [Condition of type SB-INT:INVALID-ARRAY-INDEX-ERROR]
+
+Restarts:
+ 0: [RETRY] Retry SLIME REPL evaluation request.
+ 1: [*ABORT] Return to SLIME's top level.
+ 2: [ABORT] abort thread (#<THREAD "repl-thread" RUNNING {10040E8473}>)
+
+Backtrace:
+  0: ((SB-VM::OPTIMIZED-DATA-VECTOR-REF T) #(:NONE :SHOWN :HIDDEN :EXPOSED :MOVED :RESIZED ...) 17)
+  1: (SKITTER.SDL2::ON-EVENT #<SDL2-FFI:SDL-EVENT {#X02B8F9E0}> NIL)
+  2: (CEPL.SDL2::SDL-STEP-V1 #<unused argument>)
+  3: (CEPL.HOST:HOST-STEP #<SDL2-FFI:SDL-WINDOW {#X056485B0}>)
+  4: (INIT 96 16 1.0)
+  5: (PLAY :START NIL)
+  6: (SB-INT:SIMPLE-EVAL-IN-LEXENV (PLAY :START) #<NULL-LEXENV>)
+  7: (EVAL (PLAY :START))
+ --more--
+
+Description:
+	SDL2 receives an event whose enum > the last possible event.
+
+Fix:
+	Not sure. I tried the below:
+		in skitter quicklisp folder/sdl2/sdl2.lisp:
+		add this when statement to #'on-event
+		(defun on-event (event &optional tpref)
+			(when (<= 17 event)
+				(return-from on-event))
+			(%case-event (event)
+				(:quit
+				(:timestamp ts)
+				(set-window-manager-qui......
+	Though the sdl2 event isn't of type REAL. so i removed it, and now it works without issue. odd.
+	
+Status: 
+	FIXED?
+=================================================================================
