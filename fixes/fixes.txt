@@ -1,5 +1,5 @@
-1.	not sure what the skitter sdl stuff is for.
-		i think replace the sdl2.lisp file in your skitter dist.
+1.	Replace the sdl2.lisp file in your quicklisp/skitter/sdl2/ folder.
+
 Requirements [please make sure these are installed and listed in your environment-variables]:
 	SDL2
 	
