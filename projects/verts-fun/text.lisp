@@ -6,6 +6,7 @@
 
 (let ((char-indices (make-hash-table :size 128 :test #'equal))
       (index-chars (make-hash-table :size 128 :test #'equal))
+      (text-meshes (make-hash-table :size 128 :test #'equal))
       (char-indices-initialised? nil))
   (flet ((char-index (char)
            (let ((result (gethash char char-indices)))
@@ -44,13 +45,31 @@
         (text-init-char-indices))
       (defparameter *text-sampler* (sampler-from-filename "fonts/default.png")))
 
+    
+
     (defun text-mesh-from-char (char)
       "Returns 2 values to represent a 2D Rect mesh with uv's aligned to show the given char"
-      (let ((char-index (char-index char)))
-        (multiple-value-bind (verts indices)
-            (rect-mesh :u-start (/ 1.0 16)
-                       :v-start (/ 1.0 16)
-                       :u-end (/ 1.0 4)
-                       :v-end (/ 1.0 4))
-          (values verts indices)))
-      )))
+      (multiple-value-bind (result found?) (gethash char text-meshes)
+        (if found?
+            (values (first result) (second result))
+            (let* ((char-index (char-index char))
+                   (chars-per-line 16)
+                   (step (/ 1.0 chars-per-line))
+                   (test-index char-index)
+                   (test-row (truncate (/ test-index chars-per-line)))
+                   (test-column (mod test-index chars-per-line)))
+              (multiple-value-bind (verts indices)
+                  (rect-mesh :u-start (* test-column step)
+                             :v-start (* test-row step)
+                             :u-end (+ step (* test-column step))
+                             :v-end (+ step (* test-row step)))
+                (setf (gethash char text-meshes) (list verts indices)))
+              (multiple-value-bind (verts indices) (gethash char text-meshes)
+                (values verts indices)))))
+
+
+      
+      ))
+
+  (text-init-char-indices)
+  )

@@ -1433,3 +1433,14 @@ It works because Common Lisp passes everything by value, not by reference, excep
                             (- (length string) found-pos 1)
                             found-pos)))
         string)))
+
+(defmacro defmem% (name args &body body)
+  "Defuns the given function, such that it's memoised. Currently doesn't work with &optional/rest/body/etc params."
+  (let ((cut-args (remove '&key (remove '&body (remove '&optional (remove '&rest args))))))
+    `(let ((cache (make-hash-table :test #'equal)))
+       (defun ,name ,args
+         (multiple-value-bind (result found?) (gethash '(,@cut-args) cache)
+           (if found?
+               result
+               (setf (gethash '(,@cut-args) cache) ,@body)))
+         (gethash '(,@cut-args) cache)))))

@@ -24,7 +24,7 @@
   :fragment (gui-frag-shader :vec3 :vec2))
 
 (defun rect-mesh (&key (width 1.0) (height 1.0) (u-start 0.0) (v-start 0.0) (u-end 1.0) (v-end 1.0))
-  "Returns two values: a gpu-array of uv-mapped rect-verts, and a gpu-array of vert-indices for the rect."
+  "Returns two values: a gpu-array of uv-mapped rect-verts, and a gpu-array of vert-indices for the rect. Please remember to free it when you're done."
   (let* ((width (half width))
          (height (half height)))
     (values
@@ -35,3 +35,5 @@
                      :element-type 'g-pt)
      (make-gpu-array (list 0 1 2 3 0 2)
                      :element-type :uint))))
+
+

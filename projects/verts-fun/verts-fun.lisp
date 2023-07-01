@@ -126,7 +126,7 @@
     (map-g #'gui-pipeline
            (multiple-value-bind
                  (verts indices)
-               (text-mesh-from-char 'a)
+               (text-mesh-from-char #\?)
              (make-buffer-stream
               verts
               :index-array indices

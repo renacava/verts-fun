@@ -1,3 +1,30 @@
+debugger invoked on a SIMPLE-ERROR in thread
+#<THREAD "main thread" RUNNING {10031A0003}>:
+  Error opening shared object "C:\\Users\\username\\quicklisp\\dists\\quicklisp\\software\\cl-soil-release-quicklisp-f27087ce-git\\lib\\local_x64_libSOIL.dll":
+ The specified module could not be found.
+
+Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+
+restarts (invokable by number or by possibly-abbreviated name):
+  0: [CONTINUE       ] Skip this shared object and continue.
+  1: [RETRY          ] Retry loading this shared object.
+  2: [CHANGE-PATHNAME] Specify a different pathname to load the shared object from.
+  3: [ABORT          ] Exit from the current thread.
+
+(SB-SYS:DLOPEN-OR-LOSE #S(SB-ALIEN::SHARED-OBJECT :PATHNAME #P"C:/Users/username/quicklisp/dists/quicklisp/software/cl-soil-release-quicklisp-f27087ce-git/lib/local_x64_libSOIL.dll" :NAMESTRING "C:\\Users\\username\\quicklisp\\dists\\quicklisp\\software\\cl-soil-release-quicklisp-f27087ce-git\\lib\\local_x64_libSOIL.dll" :HANDLE NIL :DONT-SAVE NIL))
+0]
+
+Description:
+	running verts-fun/projects/verts-fun/verts-fun.exe reports an error that it couldnt' find the libSOIL.dll, which it looks for in user/quicklisp/etc.
+	we need to package dll's with the game, and make sure it checks for dll's in the packaged folder.
+	or, better, we could just compile the game so it doesn't need dll's.
+	but it does, since we're developing with it. fug.
+	okay so it does need dll's.
+
+
+
+
+
 =================================================================================
 Invalid index 17 for (SIMPLE-VECTOR 17), should be a non-negative integer below 17.
    [Condition of type SB-INT:INVALID-ARRAY-INDEX-ERROR]
