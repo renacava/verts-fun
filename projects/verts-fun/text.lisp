@@ -38,5 +38,5 @@
       "Creates and binds the sampler for accessing the text atlas, to *text-sampler*. Returns *text-sampler*."
       (unless char-indices-initialised?
         (text-init-char-indices))
-      (defparameter *text-sampler* (sampler-from-filename "fonts/default.bmp")))
+      (defparameter *text-sampler* (sampler-from-filename "fonts/default.png")))
     ))

@@ -34,10 +34,13 @@
                                 (now :float)
                                 (2d-sampler :sampler-2d))
   ;;(v! colour 1.0)
-  (let* ((result (texture 2d-sampler uv))
-         (result (vec3 (aref result 0)
-                       (+ (aref result 1) (* 0.2 (sin (* 3 now))))
-                       (aref result 2))))
+  (let* ((uv (vec2 (aref uv 0)
+                   (+ (aref uv 1) now)))
+         (result (texture 2d-sampler uv))
+         (result (vec4 0.0;;(aref result 0)
+                       1.0;;(+ (aref result 1) (* 0.2 (sin (* 3 now))))
+                       0.0;;(aref result 2)
+                       (aref result 3))))
     result))
 
 (defpipeline-g cube-pipeline ()
@@ -110,23 +113,27 @@
   (setf (resolution (current-viewport))
         (get-cepl-context-surface-resolution))
   (update-viewport-perspective-matrix)
-  (map-g #'cube-pipeline
-         *buffer-stream*
-         :now (now)
-         :perspective *perspective-matrix*
-         :cam-pos (pos *camera*)
-         :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
-         :2d-sampler *text-sampler*)
-  (map-g #'gui-pipeline
-         (multiple-value-bind
-               (verts indices)
-             (rect-mesh :u-start (/ 1.0 16) :v-start (/ 1.0 16) :u-end (/ 1.0 4) :v-end (/ 1.0 8))
-           (make-buffer-stream
-            verts
-            :index-array indices
-            :retain-arrays t))
-         :perspective *perspective-matrix*
-         :2d-sampler *text-sampler*)
+  
+  (with-blending *default-blending-params*
+    (map-g #'cube-pipeline
+           *buffer-stream*
+           :now (now)
+           :perspective *perspective-matrix*
+           :cam-pos (pos *camera*)
+           :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
+           :2d-sampler *text-sampler*)
+
+    (map-g #'gui-pipeline
+           (multiple-value-bind
+                 (verts indices)
+               (rect-mesh :u-start (/ 1.0 16) :v-start (/ 1.0 16) :u-end (/ 1.0 4) :v-end (/ 1.0 8))
+             (make-buffer-stream
+              verts
+              :index-array indices
+              :retain-arrays t))
+           :perspective *perspective-matrix*
+           :2d-sampler *text-sampler*))
+  
   (swap)
   (step-host)
   (decay-events))
@@ -146,6 +153,8 @@
 (defun depth-func-set (&optional (depth-func #'<=))
   "Sets the opengl depth-test function to the given depth-func."
   (setf (cepl:depth-test-function) depth-func))
+
+(defparameter *default-blending-params* (make-blending-params))
 
 (defun init (&optional (chunk-size 96) (chunk-height 16) (spacing 1.0))
   (when *buffer-stream*

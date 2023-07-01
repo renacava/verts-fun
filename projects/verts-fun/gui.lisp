@@ -13,9 +13,10 @@
                           &uniform
                           (2d-sampler :sampler-2d))
   (let* ((result (texture 2d-sampler uv))
-         (result (vec3 (aref result 0)
-                       (aref result 1)
-                       (aref result 2))))
+         (result (vec4 0.0;;(aref result 0)
+                       1.0;;(aref result 1)
+                       0.0;;(aref result 2)
+                       (aref result 3))))
     result))
 
 (defpipeline-g gui-pipeline ()
