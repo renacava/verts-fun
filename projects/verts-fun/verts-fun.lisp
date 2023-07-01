@@ -117,6 +117,16 @@
          :cam-pos (pos *camera*)
          :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
          :2d-sampler *text-sampler*)
+  (map-g #'gui-pipeline
+         (multiple-value-bind
+               (verts indices)
+             (rect-mesh :u-start (/ 1.0 16) :v-start (/ 1.0 16) :u-end (/ 1.0 4) :v-end (/ 1.0 8))
+           (make-buffer-stream
+            verts
+            :index-array indices
+            :retain-arrays t))
+         :perspective *perspective-matrix*
+         :2d-sampler *text-sampler*)
   (swap)
   (step-host)
   (decay-events))

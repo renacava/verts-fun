@@ -21,5 +21,5 @@
                (:file "world-query")
                (:file "camera")
                (:file "verts-fun")
-               
+               (:file "gui")
                ))
