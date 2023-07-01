@@ -124,13 +124,7 @@
            :2d-sampler *text-sampler*)
 
     (map-g #'gui-pipeline
-           (multiple-value-bind
-                 (verts indices)
-               (text-mesh-from-char #\?)
-             (make-buffer-stream
-              verts
-              :index-array indices
-              :retain-arrays t))
+           (text-buffer-stream-from-char #\?)
            :perspective *perspective-matrix*
            :2d-sampler *text-sampler*))
   

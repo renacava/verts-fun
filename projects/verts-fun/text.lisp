@@ -7,6 +7,7 @@
 (let ((char-indices (make-hash-table :size 128 :test #'equal))
       (index-chars (make-hash-table :size 128 :test #'equal))
       (text-meshes (make-hash-table :size 128 :test #'equal))
+      (text-buffers (make-hash-table :size 128 :test #'equal))
       (char-indices-initialised? nil))
   (flet ((char-index (char)
            (let ((result (gethash char char-indices)))
@@ -29,6 +30,10 @@
     (defun text-print-char-indices ()
       "Prints out the char-indices table."
       (hash-table-print char-indices))
+
+    (defun text-print-text-meshes ()
+      "Prints out the text-meshes table."
+      (hash-table-print text-meshes))
     
     (defun text-char-to-uv (char)
       "Returns a vector of #(u v), for the UV coordinates of the given char in the default texture atlas, assuming 256x256 image with 16x16 characters."
@@ -45,10 +50,8 @@
         (text-init-char-indices))
       (defparameter *text-sampler* (sampler-from-filename "fonts/default.png")))
 
-    
-
     (defun text-mesh-from-char (char)
-      "Returns 2 values to represent a 2D Rect mesh with uv's aligned to show the given char"
+      "Returns a list of 2 values to represent a 2D Rect mesh with uv's aligned to show the given char"
       (multiple-value-bind (result found?) (gethash char text-meshes)
         (if found?
             (values (first result) (second result))
@@ -64,12 +67,17 @@
                              :u-end (+ step (* test-column step))
                              :v-end (+ step (* test-row step)))
                 (setf (gethash char text-meshes) (list verts indices)))
-              (multiple-value-bind (verts indices) (gethash char text-meshes)
-                (values verts indices)))))
+              (gethash char text-meshes)))))
+    
+    (defun text-buffer-stream-from-char (char)
+      (multiple-value-bind (result found?) (gethash char text-buffers)
+        (if found?
+            result
+            (let ((mesh (text-mesh-from-char char)))
+              (setf (gethash char text-buffers)
+                    (make-buffer-stream (first mesh)
+                                        :index-array (second mesh)
+                                        :retain-arrays t))
+              (gethash char text-buffers))))))
 
-
-      
-      ))
-
-  (text-init-char-indices)
-  )
+  (text-init-char-indices))
