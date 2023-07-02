@@ -1,3 +1,40 @@
+=================================================================================
+
+=================================================================================
+
+dimensions are not optional when reserving a buffer block
+   [Condition of type SIMPLE-ERROR]
+
+Restarts:
+ 0: [RETRY] Retry SLIME REPL evaluation request.
+ 1: [CONTINUE] Livesupport: Continue
+ 2: [CONTINUE] Livesupport: Continue
+ 3: [RETRY] Retry SLIME REPL evaluation request.
+ 4: [*ABORT] Return to SLIME's top level.
+ 5: [ABORT] abort thread (#<THREAD "repl-thread" RUNNING {100A8B8473}>)
+
+Backtrace:
+  0: (BUFFER-RESERVE-BLOCK #<GPU-BUFFER :UNINITIALIZED> G-PNT NIL :ARRAY-BUFFER :STATIC-DRAW :ROW-ALIGNMENT 1)
+  1: (CEPL.GPU-ARRAYS.BUFFER-BACKED::INIT-GPU-ARRAY-NO-DATA #<GPU-ARRAY :UNINITIALIZED :backed-by :BUFFER> NIL G-PNT :STATIC-DRAW 1)
+  2: ((:METHOD MAKE-GPU-ARRAY (NULL)) #<unused argument> :ELEMENT-TYPE G-PNT :DIMENSIONS NIL :ACCESS-STYLE :STATIC-DRAW :ROW-ALIGNMENT 1) [fast-method]
+  3: (MAKE-CHUNK-STREAM 8 8 #(0.0 20.0 0.0))
+  4: (MAKE-CHUNK #(0.0 20.0 0.0) 8 8)
+  5: (SB-INT:SIMPLE-EVAL-IN-LEXENV (MAKE-CHUNK (V! 0 20 0) 8 8) #<NULL-LEXENV>)
+  6: (EVAL (MAKE-CHUNK (V! 0 20 0) 8 8))
+  
+Description:
+	trying to generate a chunk where there aren't any blocks, or any blocks exposed to air, results in this bug.
+	it happens because we're trying to make a buffer with no verts and no indices.
+	
+Fix:
+	setup some sort of check to not make a buffer stream if there aren't any visible blocks found.
+	you'll need to propagate this or something, so render code also knows not to try render the chunk and all.
+	
+Status:
+	unfixed
+
+=================================================================================
+
 debugger invoked on a SIMPLE-ERROR in thread
 #<THREAD "main thread" RUNNING {10031A0003}>:
   Error opening shared object "C:\\Users\\username\\quicklisp\\dists\\quicklisp\\software\\cl-soil-release-quicklisp-f27087ce-git\\lib\\local_x64_libSOIL.dll":
