@@ -37,8 +37,8 @@
   (let* ((uv (vec2 (aref uv 0)
                    (+ (aref uv 1) now)))
          (result (texture 2d-sampler uv))
-         (result (vec4 0.0;;(aref result 0)
-                       1.0;;(+ (aref result 1) (* 0.2 (sin (* 3 now))))
+         (result (vec4 1.0;;(aref result 0)
+                       0.0;;(+ (aref result 1) (* 0.2 (sin (* 3 now))))
                        0.0;;(aref result 2)
                        (aref result 3))))
     result))
@@ -104,7 +104,12 @@
   (draw)
   (calculate-fps))
 
-(defparameter *my-text* (make-instance 'text :text "dog"))
+(defparameter *my-texts*
+  (loop for text-index below 3
+        collect (make-instance 'text
+                               :text (format nil "~a" text-index)
+                               :pos (v! (- text-index 1) -0.8)
+                               :scale 0.2)))
 
 (defun draw ()
   "Called one per-frame, this is where everything is drawn."
@@ -115,7 +120,7 @@
   (setf (resolution (current-viewport))
         (get-cepl-context-surface-resolution))
   (update-viewport-perspective-matrix)
-  
+
   (with-blending *default-blending-params*
     (map-g #'cube-pipeline
            *buffer-stream*
@@ -124,10 +129,9 @@
            :cam-pos (pos *camera*)
            :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
            :2d-sampler *text-sampler*)
-    (map-g #'gui-pipeline
-           (text-buffer-stream-from-char #\F)
-           :perspective *perspective-matrix*
-           :2d-sampler *text-sampler*)   )
+
+    (without-depth
+      (render *my-texts*)))
     
   (swap)
   (step-host)
@@ -148,6 +152,17 @@
 (defun depth-func-set (&optional (depth-func #'<=))
   "Sets the opengl depth-test function to the given depth-func."
   (setf (cepl:depth-test-function) depth-func))
+
+(defun depth-func-get ()
+  "Returns the current depth function."
+  (cepl:depth-test-function))
+
+(defmacro without-depth (&body body)
+  "Runs the given body after disabling depth-testing, then re-enables it."
+  `(let ((prior-func (depth-func-get)))
+     (depth-func-set nil)
+     ,@body
+     (depth-func-set prior-func)))
 
 (defparameter *default-blending-params* (make-blending-params))
 

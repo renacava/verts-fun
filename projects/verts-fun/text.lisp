@@ -96,17 +96,32 @@
   ())
 
 (defclass text (moduclass)
-  ((text
+  ((pos
+    :initarg :pos
+    :initform (v! 0.0 0.0)
+    :accessor pos)
+   (scale
+    :initarg :scale
+    :initform 1.0
+    :accessor scale)
+   (text
     :initarg :text
     :initform "default"
-    :reader get-text)))
+    :accessor text)))
 
 (defgeneric render (obj)
   (:documentation
    "Renders the given object when called within the draw-loop."))
 
+(defmethod render ((obj list))
+  (mapcar #'render obj))
+
 (defmethod render ((obj text))
+  
   (map-g #'gui-pipeline
-         (text-buffer-stream-from-char (aref (get-text obj) 0))
+         (text-buffer-stream-from-char (aref (text obj) 0))
          :perspective *perspective-matrix*
-         :2d-sampler *text-sampler*))
+         :2d-sampler *text-sampler*
+         :offset (pos obj)
+         :scale (scale obj)))
+
