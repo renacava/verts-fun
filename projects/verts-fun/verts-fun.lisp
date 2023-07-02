@@ -1,9 +1,6 @@
 ;;;; verts-fun.lisp
 
 (in-package #:verts-fun)
-;;(load "utilities.lisp")
-(defvar *buffer-stream* nil)
-(defvar *gpu-array* nil)
 (defvar *perspective-matrix* nil)
 (defparameter *fps* 1)
 (defparameter *delta* 1)
@@ -16,11 +13,7 @@
                               (cam-pos :vec3)
                               (cam-rot :mat3))
   (let* ((pos (pos vert))
-
-         (colour (vec3 (* (mod (aref pos 0) (+ 1.2 (sin (* 0.15 now)))) (+ 1.0 (sin (* 2 now))))
-                       (* (mod (aref pos 1) (+ 1.2 (sin (* 0.05 now)))) (+ 1.0 (sin (* 3 now))))
-                       (* (mod (aref pos 2) (+ 1.2 (sin (* 0.1 now)))) (+ 1.0 (cos (* 1 now))))
-                       ))
+         (colour (vec3 0.0 0.0 0.0))
          (pos (- pos cam-pos))
          (pos (* cam-rot pos)))
     (values (* perspective (v! pos 1.0))
@@ -32,14 +25,14 @@
                                 (uv :vec2)
                                 &uniform
                                 (now :float)
-                                (2d-sampler :sampler-2d))
-  ;;(v! colour 1.0)
+                                (2d-sampler :sampler-2d)
+                                (debug-colour :vec4))
   (let* ((uv (vec2 (aref uv 0)
                    (+ (aref uv 1) now)))
          (result (texture 2d-sampler uv))
-         (result (vec4 1.0;;(aref result 0)
-                       0.0;;(+ (aref result 1) (* 0.2 (sin (* 3 now))))
-                       0.0;;(aref result 2)
+         (result (vec4 (aref debug-colour 0)
+                       (aref debug-colour 1)
+                       (aref debug-colour 2)
                        (aref result 3))))
     result))
 
@@ -89,11 +82,24 @@
            (framerate (truncate (/ 1.0 (if (>= 0 delta-seconds)
                                            0.1
                                            delta-seconds)))))
-      (setf last-time current-time)
-      ;; (print (format nil "delta-seconds = ~a~%" delta-seconds))
-      ;; (print (format nil "framerate = ~a~%" framerate))
-      (setf *fps* framerate
+      (setf last-time current-time)      (setf *fps* framerate
             *delta* delta-seconds))))
+
+(defun depth-func-set (&optional (depth-func #'<=))
+  "Sets the opengl depth-test function to the given depth-func."
+  (setf (cepl:depth-test-function) depth-func))
+
+(defun depth-func-get ()
+  "Returns the current depth function."
+  (cepl:depth-test-function))
+
+(defmacro without-depth (&body body)
+  "Runs the given body after disabling depth-testing, then re-enables it."
+  `(let ((prior-func (depth-func-get)))
+     (depth-func-set nil)
+     ,@body
+     (depth-func-set prior-func)))
+
 
 (defun main-loop ()
   "Contains calls to all things that should occur once per frame, like drawing."
@@ -104,13 +110,14 @@
   (draw)
   (calculate-fps))
 
+
 (defparameter *my-texts*
   (list
-   (loop for text-index below 30
+   (loop for text-index below 3
          collect (make-instance 'text
                                 :text (format nil "~a" text-index)
                                 :pos (v! (- (random 2.0) 1.0)
-                                         (- (random 2.0) 1.0))
+                                         (- (random 1.5) 1.0))
                                 :scale 0.2))
    ))
 
@@ -125,14 +132,8 @@
   (update-viewport-perspective-matrix)
 
   (with-blending *default-blending-params*
-    (map-g #'cube-pipeline
-           *buffer-stream*
-           :now (now)
-           :perspective *perspective-matrix*
-           :cam-pos (pos *camera*)
-           :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
-           :2d-sampler *text-sampler*)
-
+    (render (list *my-chunk*
+                  *my-chunk2*))
     (without-depth
       (render *my-texts*)))
     
@@ -152,30 +153,15 @@
               (float (third colour))
               1.0)))
 
-(defun depth-func-set (&optional (depth-func #'<=))
-  "Sets the opengl depth-test function to the given depth-func."
-  (setf (cepl:depth-test-function) depth-func))
-
-(defun depth-func-get ()
-  "Returns the current depth function."
-  (cepl:depth-test-function))
-
-(defmacro without-depth (&body body)
-  "Runs the given body after disabling depth-testing, then re-enables it."
-  `(let ((prior-func (depth-func-get)))
-     (depth-func-set nil)
-     ,@body
-     (depth-func-set prior-func)))
-
 (defparameter *default-blending-params* (make-blending-params))
 
 (defun init (&optional (chunk-size 96) (chunk-height 16) (spacing 1.0))
-  (when *buffer-stream*
-    (free *buffer-stream*))
-  (when (getf *gpu-array* :verts)
-    (free (getf *gpu-array* :verts)))
-  (when (getf *gpu-array* :indices)
-    (free (getf *gpu-array* :indices)))
+  ;; (when *buffer-stream*
+  ;;   (free *buffer-stream*))
+  (when (boundp '*my-chunk*)
+    (free (buffer-stream *my-chunk*))
+    (setf *my-chunk* nil))
+  (sb-ext:gc)
   (vsync-set t)
   (window-title-set "verts-fun")
   (depth-func-set #'<=)
@@ -185,11 +171,9 @@
   
   (defparameter *tile-sampler* (sampler-from-filename "tiles.png"))
   (defparameter *jade-sampler* (sampler-from-filename "jade-moon.jpg"))
-  ;; (defparameter *text-sampler* (sampler-from-filename "fonts/default.bmp"))
+  (defparameter *my-chunk* (make-chunk (vec3 0.0 0.0 0.0) 8 8))
+  (defparameter *my-chunk2* (make-chunk (vec3 8.0 0.0 0.0) 8 8))
   
-  (setf *gpu-array* (cube-mesh-to-gpu-arrays (combine-cube-mesh-list (make-cool-chunk chunk-size chunk-height spacing))))
-  (setf *buffer-stream* (make-buffer-stream (getf *gpu-array* :verts)
-                                            :index-array (getf *gpu-array* :indices)))
   (step-host)
   (setf *game-stopped-p* nil))
 

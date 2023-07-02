@@ -15,6 +15,7 @@
                (:file "load-file")
                (:file "materials")
                (:file "cube")
+               (:file "chunk")
                (:file "mesh")
                (:file "texture")
                (:file "text")
