@@ -91,3 +91,22 @@
     )
 
   (text-init-char-indices))
+
+(defclass moduclass ()
+  ())
+
+(defclass text (moduclass)
+  ((text
+    :initarg :text
+    :initform "default"
+    :reader get-text)))
+
+(defgeneric render (obj)
+  (:documentation
+   "Renders the given object when called within the draw-loop."))
+
+(defmethod render ((obj text))
+  (map-g #'gui-pipeline
+         (text-buffer-stream-from-char (aref (get-text obj) 0))
+         :perspective *perspective-matrix*
+         :2d-sampler *text-sampler*))

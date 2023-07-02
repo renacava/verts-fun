@@ -104,6 +104,8 @@
   (draw)
   (calculate-fps))
 
+(defparameter *my-text* (make-instance 'text :text "dog"))
+
 (defun draw ()
   "Called one per-frame, this is where everything is drawn."
   (when *game-stopped-p*
@@ -122,12 +124,11 @@
            :cam-pos (pos *camera*)
            :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
            :2d-sampler *text-sampler*)
-
     (map-g #'gui-pipeline
            (text-buffer-stream-from-char #\F)
            :perspective *perspective-matrix*
-           :2d-sampler *text-sampler*))
-  
+           :2d-sampler *text-sampler*)   )
+    
   (swap)
   (step-host)
   (decay-events))
