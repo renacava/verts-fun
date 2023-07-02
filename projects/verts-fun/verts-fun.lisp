@@ -106,15 +106,13 @@
 
 (defparameter *my-texts*
   (list
-   (make-instance 'text
-                  :text "4"
-                  :pos (v! -1 0.8)
-                  :scale 0.2)
-   (loop for text-index below 3
+   (loop for text-index below 30
          collect (make-instance 'text
                                 :text (format nil "~a" text-index)
-                                :pos (v! (- text-index 1) -0.8)
-                                :scale 0.2))))
+                                :pos (v! (- (random 2.0) 1.0)
+                                         (- (random 2.0) 1.0))
+                                :scale 0.2))
+   ))
 
 (defun draw ()
   "Called one per-frame, this is where everything is drawn."
