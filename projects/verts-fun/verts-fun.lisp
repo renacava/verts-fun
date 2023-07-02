@@ -132,8 +132,9 @@
   (update-viewport-perspective-matrix)
 
   (with-blending *default-blending-params*
-    (render (list *my-chunk*
-                  *my-chunk2*))
+    ;; (render (list *my-chunk*
+    ;;               *my-chunk2*))
+    (render *chunks*)
     (without-depth
       (render *my-texts*)))
     
@@ -161,6 +162,11 @@
   (when (boundp '*my-chunk*)
     (free (buffer-stream *my-chunk*))
     (setf *my-chunk* nil))
+  (when (boundp '*chunks*)
+    (mapcar (lambda (chunk)
+              (free (buffer-stream chunk))
+              (setf chunk nil))
+            *chunks*))
   (sb-ext:gc)
   (vsync-set t)
   (window-title-set "verts-fun")
@@ -173,7 +179,16 @@
   (defparameter *jade-sampler* (sampler-from-filename "jade-moon.jpg"))
   (defparameter *my-chunk* (make-chunk (vec3 0.0 0.0 0.0) 8 8))
   (defparameter *my-chunk2* (make-chunk (vec3 8.0 0.0 0.0) 8 8))
-  
+  (defparameter *chunks* (mapcar (lambda (xz)
+                                   (make-chunk (v! (first xz) 0.0 (second xz)) 8 8))
+                                 (list '(0 0)
+                                       '(8 0)
+                                       '(16 0)
+                                       '(24 0)
+                                       '(0 8)
+                                       '(8 8)
+                                       '(16 8)
+                                       '(24 8))))
   (step-host)
   (setf *game-stopped-p* nil))
 
