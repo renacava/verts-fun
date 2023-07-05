@@ -28,7 +28,7 @@
                                 (2d-sampler :sampler-2d)
                                 (debug-colour :vec4))
   (let* ((uv (vec2 (aref uv 0)
-                   (+ (aref uv 1) now)))
+                   (+ (aref uv 1) 0)))
          (result (texture 2d-sampler uv))
          (result (vec4 (aref debug-colour 0)
                        (aref debug-colour 1)

@@ -8,7 +8,8 @@
   :depends-on (#:cepl #:cepl.sdl2 #:nineveh
                       #:temporal-functions
                       #:cepl.skitter.sdl2 #:dirt #:rtg-math
-                      #:sdl2-game-controller-db)
+                      #:sdl2-game-controller-db
+                      #:fiveam)
   :serial t
   :components ((:file "package")
                (:file "utilities")

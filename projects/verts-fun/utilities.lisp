@@ -1437,7 +1437,7 @@ It works because Common Lisp passes everything by value, not by reference, excep
                (setf (gethash '(,@cut-args) cache) ,@body)))
          (gethash '(,@cut-args) cache)))))
 
-(defun cache-func (func)
+(defun cache-func% (func)
   "Returns the given func after setting it up to cache its results. If you call the function with the same args more than once, it fetches a cached result and returns that instead of recalculating things."
   (let ((cache (make-hash-table :test #'equal)))
     (lambda (args)

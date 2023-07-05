@@ -73,5 +73,5 @@
          :perspective *perspective-matrix*
          :cam-pos (pos *camera*)
          :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
-         :2d-sampler *text-sampler*
+         :2d-sampler *jade-sampler*
          :debug-colour (debug-colour chunk)))
