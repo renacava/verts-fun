@@ -96,5 +96,24 @@
 
     (setf my-key-state nil)))
 
-;; (let ((keyboard-table (make-hash-table)))
-;;   )
+(let ((key-state-table (make-hash-table)))
+  (defun keyboard-init-keystates ()
+    (clrhash key-state-table)
+    (let ((keys-vector skitter.sdl2::*key-button-names*))
+      (loop for key across keys-vector
+            do (progn
+                 (unless (gethash key key-state-table)
+                   (setf (gethash key key-state-table)
+                         (make-instance 'key-state :key-name key))))))
+    ;; (mapcar (lambda (key)
+    ;;           (unless (gethash key key-state-table)
+    ;;             (setf (gethash key key-state-table)
+    ;;                   (make-instance 'key-state :key-name key))))
+    ;;         skitter.sdl2::*key-button-names*)
+    )
+  
+  (defun keyboard-print ()
+    (hash-table-print key-state-table))
+
+  (defun keyboard-get-keystate-table ()
+    key-state-table))
