@@ -1,4 +1,4 @@
-(defclass material ()
+(defclass material (moduclass)
   ((strength
     :initform 50.0
     :initarg :strength

@@ -12,8 +12,11 @@
                       #:fiveam)
   :serial t
   :components ((:file "package")
+               (:file "test")
                (:file "utilities")
+               (:file "moduclass")
                (:file "load-file")
+               (:file "keyboard")
                (:file "materials")
                (:file "cube")
                (:file "chunk")
