@@ -1,5 +1,5 @@
 (in-package #:verts-fun)
-(sdl2-game-controller-db:load-db)
+;; (sdl2-game-controller-db:load-db)
 
 (defclass camera ()
   ((pos
