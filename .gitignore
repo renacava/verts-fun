@@ -12,6 +12,8 @@ all/emacsd
 all/fonts
 all/locale
 all/ssl
+all/quicklisp/quicklisp
+all/
 .portacle_root
 portacle.exe
 config
