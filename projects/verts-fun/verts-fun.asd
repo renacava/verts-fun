@@ -9,7 +9,11 @@
                       #:temporal-functions
                       #:cepl.skitter.sdl2 #:dirt #:rtg-math
                       #:sdl2-game-controller-db
-                      #:fiveam)
+                      #:fiveam
+                      #:deploy)
+  :build-operation "deploy-op"
+  :build-pathname "verts-fun-deployed"
+  :entry-point "verts-fun::start"
   :serial t
   :components ((:file "package")
                (:file "test")

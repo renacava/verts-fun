@@ -110,7 +110,6 @@
   (draw)
   (calculate-fps))
 
-
 (defparameter *my-texts*
   (list
    (loop for text-index below 3
@@ -157,6 +156,7 @@
 (defparameter *default-blending-params* (make-blending-params))
 
 (defun init (&optional (chunk-size 96) (chunk-height 16) (spacing 1.0))
+  (setf *game-stopped-p* nil)
   (when (boundp '*my-chunk*)
     (free (buffer-stream *my-chunk*))
     (setf *my-chunk* nil))
@@ -188,7 +188,7 @@
                                        '(16 8)
                                        '(24 8))))
   (step-host)
-  (setf *game-stopped-p* nil))
+  )
 
 (def-simple-main-loop play (:on-start (lambda () (init)))
   (main-loop))
