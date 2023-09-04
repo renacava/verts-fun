@@ -157,8 +157,6 @@
 (defparameter *default-blending-params* (make-blending-params))
 
 (defun init (&optional (chunk-size 96) (chunk-height 16) (spacing 1.0))
-  ;; (when *buffer-stream*
-  ;;   (free *buffer-stream*))
   (when (boundp '*my-chunk*)
     (free (buffer-stream *my-chunk*))
     (setf *my-chunk* nil))
@@ -174,7 +172,7 @@
   ;;  (sky-colour-set (list 0.3 0.3 0.9))
   (sky-colour-set '(0 0 0))
   (text-init-sampler)
-  
+  (sdl2-game-controller-db:load-db)
   (defparameter *tile-sampler* (sampler-from-filename "tiles.png"))
   (defparameter *jade-sampler* (sampler-from-filename "jade-moon.jpg"))
   (defparameter *my-chunk* (make-chunk (vec3 0.0 0.0 0.0) 8 8))
