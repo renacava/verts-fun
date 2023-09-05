@@ -108,7 +108,8 @@
     (play :stop)
     (return-from main-loop))
   (draw)
-  (calculate-fps))
+  (calculate-fps)
+  (step-host))
 
 (defparameter *my-texts*
   (list
@@ -117,8 +118,7 @@
                                 :text (format nil "~a" text-index)
                                 :pos (v! (- (random 2.0) 1.0)
                                          (- (random 1.5) 1.0))
-                                :scale 0.2))
-   ))
+                                :scale 0.2))))
 
 (defun draw ()
   "Called one per-frame, this is where everything is drawn."
@@ -138,7 +138,6 @@
       (render *my-texts*)))
     
   (swap)
-  (step-host)
   (decay-events))
 
 (defun vsync-set (bool)
@@ -169,7 +168,6 @@
   (vsync-set t)
   (window-title-set "verts-fun")
   (depth-func-set #'<=)
-  ;;  (sky-colour-set (list 0.3 0.3 0.9))
   (sky-colour-set '(0 0 0))
   (text-init-sampler)
   (sdl2-game-controller-db:load-db)
@@ -187,8 +185,7 @@
                                        '(8 8)
                                        '(16 8)
                                        '(24 8))))
-  (step-host)
-  )
+  (step-host))
 
 (def-simple-main-loop play (:on-start (lambda () (init)))
   (main-loop))

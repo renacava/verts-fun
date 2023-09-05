@@ -27,4 +27,5 @@
 
 (defun sampler-from-filename (file-name)
   "Makes and returns a sampler from the given file-name."
-  (sampler-from-texture (texture-load file-name)))
+  (let ((texture (texture-load file-name)))
+    (sampler-from-texture texture)))

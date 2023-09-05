@@ -1,9 +1,5 @@
 (in-package :verts-fun)
 
-;; (defun text-default-atlas-texture ()
-;;   "Loads the default font as an image, returning "
-;;   (texture-load "fonts/silkscreen.bmp"))
-
 (let ((char-indices (make-hash-table :size 128 :test #'equal))
       (index-chars (make-hash-table :size 128 :test #'equal))
       (text-meshes (make-hash-table :size 128 :test #'equal))
@@ -48,7 +44,8 @@
       "Creates and binds the sampler for accessing the text atlas, to *text-sampler*. Returns *text-sampler*."
       (unless char-indices-initialised?
         (text-init-char-indices))
-      (defparameter *text-sampler* (sampler-from-filename "fonts/default.png")))
+      (defparameter *text-sampler* (sampler-from-filename "fonts/default.png"))
+      )
 
     (defun text-mesh-from-char (char)
       "Returns a list of 2 values to represent a 2D Rect mesh with uv's aligned to show the given char"
