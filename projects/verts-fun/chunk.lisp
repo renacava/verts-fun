@@ -14,10 +14,6 @@
                                                   collect (vec3 (float (+ x pos-x))
                                                                 (float (+ y pos-y))
                                                                 (float (+ z pos-z)))))))
-         ;; (positions (mapcar (lambda (pos) (vec3 (+ (aref pos 0) pos-x)
-         ;;                                        (+ (aref pos 1) pos-y)
-         ;;                                        (+ (aref pos 2) pos-z)))
-         ;;                    positions))
          (positions (remove-if-not #'block-at-pos? positions)) ;;grab only positions of blocks that aren't air
          (positions (remove-if-not #'has-empty-neighbour? positions)) ;; of non-air blocks, grab only those that aren't surrounded by other blocks
          )
@@ -59,13 +55,14 @@
 
 (defun make-chunk (pos width height)
   "Returns an instance of the chunk class"
-  (make-instance 'chunk
-                 :pos pos
-                 :width (abs width) 
-                 :height (abs height)
-                 :buffer-stream (make-chunk-stream (abs width)
-                                                   (abs height)
-                                                   pos)))
+  (let ((scaled-pos (v! (* (aref pos 0) width) 0.0 (* (aref pos 2) width))))
+    (make-instance 'chunk
+                   :pos scaled-pos
+                   :width (abs width) 
+                   :height (abs height)
+                   :buffer-stream (make-chunk-stream (abs width)
+                                                     (abs height)
+                                                     scaled-pos))))
 (defmethod render ((chunk chunk))
   (map-g #'cube-pipeline
          (buffer-stream chunk)
@@ -75,3 +72,14 @@
          :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
          :2d-sampler *jade-sampler*
          :debug-colour (debug-colour chunk)))
+
+(defun chunk-make-positions (radius &optional (x-offset 0) (z-offset 0))
+  "Returns a list of '(x y) positions representing a square filled with positions to spawn chunks in.
+A radius of 12 would return a 24x24 grid, since radius is essentially chunk view-distance."
+  (let* ((chunk-positions)
+         (radius (truncate (* 2 radius)))
+         (half-radius (half radius)))
+    (dotimes (x radius)
+      (dotimes (z radius)
+        (ntack chunk-positions (list (+ x-offset (- x half-radius)) (+ z-offset(- z half-radius))))))
+    chunk-positions))

@@ -50,10 +50,12 @@
     (cepl:quit)))
 
 (defun window-title-set (title)
+  "Sets the title of the window to the given title"
   (setf (cepl:surface-title (cepl:current-surface)) (format nil "~a" title)))
 
 (defun now ()
-  (* (/ 0.5 internal-time-units-per-second) (get-internal-real-time)))
+  "Returns the current internal real time in seconds. Maybe half of it. I'm not sure."
+  (* (/ 1.0 internal-time-units-per-second) (get-internal-real-time)))
 
 (defun get-viewport-resolution ()
   "Returns a vec2 of x/y viewport resolution"
@@ -154,7 +156,7 @@
 
 (defparameter *default-blending-params* (make-blending-params))
 
-(defun init (&optional (chunk-size 96) (chunk-height 16) (spacing 1.0))
+(defun init (&optional (view-distance 8) (chunk-size 8))
   (setf *game-stopped-p* nil)
   (when (boundp '*my-chunk*)
     (free (buffer-stream *my-chunk*))
@@ -176,15 +178,8 @@
   (defparameter *my-chunk* (make-chunk (vec3 0.0 0.0 0.0) 8 8))
   (defparameter *my-chunk2* (make-chunk (vec3 8.0 0.0 0.0) 8 8))
   (defparameter *chunks* (mapcar (lambda (xz)
-                                   (make-chunk (v! (first xz) 0.0 (second xz)) 8 8))
-                                 (list '(0 0)
-                                       '(8 0)
-                                       '(16 0)
-                                       '(24 0)
-                                       '(0 8)
-                                       '(8 8)
-                                       '(16 8)
-                                       '(24 8))))
+                                   (make-chunk (v! (first xz) 0.0 (second xz)) chunk-size 8))
+                                 (chunk-make-positions view-distance)))
   (step-host))
 
 (def-simple-main-loop play (:on-start (lambda () (init)))
