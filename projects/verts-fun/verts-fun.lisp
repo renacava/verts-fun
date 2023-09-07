@@ -179,7 +179,9 @@
   (defparameter *my-chunk2* (make-chunk (vec3 8.0 0.0 0.0) 8 8))
   (defparameter *chunks* (mapcar (lambda (xz)
                                    (make-chunk (v! (first xz) 0.0 (second xz)) chunk-size 8))
-                                 (chunk-make-positions view-distance)))
+                                 (chunk-make-positions-from-location 5 (pos *camera*) 8)
+                                 ;;(chunk-make-positions view-distance)
+                                 ))
   (step-host))
 
 (def-simple-main-loop play (:on-start (lambda () (init)))

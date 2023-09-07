@@ -88,11 +88,11 @@ A radius of 12 would return a 24x24 grid, since radius is essentially chunk view
 
 (defun pos-world-to-chunk (world-position &optional (chunk-width 8))
   "Returns world-position vector converted into chunk space."
-  (v! (truncate (/ (aref world-position 0) chunk-width))
-      (truncate (/ (aref world-position 1) chunk-width))
-      (truncate (/ (aref world-position 2) chunk-width))))
+  (v! (round (/ (aref world-position 0) chunk-width))
+      (round (/ (aref world-position 1) chunk-width))
+      (round (/ (aref world-position 2) chunk-width))))
 
 (defun chunk-make-positions-from-location (radius position &optional (chunk-width 8))
-  "Returns a list of '(x y) positions around an area from the given position, for making chunks."
+  "Returns a list of '(x y) positions around an area from the given position, for making chunks. position should be a vec3."
   (let* ((chunk-position (pos-world-to-chunk position chunk-width)))
     (chunk-make-positions radius (aref chunk-position 0) (aref chunk-position 2))))

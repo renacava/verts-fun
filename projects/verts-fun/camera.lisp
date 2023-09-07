@@ -11,7 +11,8 @@
     :accessor rot)))
 
 
-(let ((previous-w nil))
+(let ((previous-w nil)
+      (previous-r nil))
   (defun update-camera (camera)
     ;; (setf *cam-pos* (v! (* 2 (+ 2 (* 2 (sin (* 2 (now))))))
     ;;                     (* 2 (+ 2 (* 2 (sin (* 1.5 (now))))))
@@ -27,8 +28,7 @@
           (if previous-w
               (print "still-pressed")
               (print "w just pressed"))
-          (setf previous-w t)
-          )
+          (setf previous-w t))
         (when previous-w
           (print "released w")
           (setf previous-w nil))
@@ -57,6 +57,18 @@
         (setf (rot camera)
               (q:from-fixed-angles (- (y pos))
                                    (- (x pos))
-                                   0.0)))))
+                                   0.0))))
+    (if (keyboard-button (keyboard) key.r)
+        (progn
+          
+          (unless previous-r
+            (print "r just pressed in camera.lisp")
+            (init)
+            )
+          (setf previous-r t))
+        (when previous-r
+          
+          (setf previous-r nil))
+        ))
 
   )
