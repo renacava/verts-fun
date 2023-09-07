@@ -77,9 +77,22 @@
   "Returns a list of '(x y) positions representing a square filled with positions to spawn chunks in.
 A radius of 12 would return a 24x24 grid, since radius is essentially chunk view-distance."
   (let* ((chunk-positions)
-         (radius (truncate (* 2 radius)))
-         (half-radius (half radius)))
+         (half-radius radius)
+         (radius (* 2 radius)))
     (dotimes (x radius)
       (dotimes (z radius)
         (ntack chunk-positions (list (+ x-offset (- x half-radius)) (+ z-offset(- z half-radius))))))
-    chunk-positions))
+    (mapcar (lambda (xz) (list (truncate (first xz))
+                                (truncate (second xz))))
+            chunk-positions)))
+
+(defun pos-world-to-chunk (world-position &optional (chunk-width 8))
+  "Returns world-position vector converted into chunk space."
+  (v! (truncate (/ (aref world-position 0) chunk-width))
+      (truncate (/ (aref world-position 1) chunk-width))
+      (truncate (/ (aref world-position 2) chunk-width))))
+
+(defun chunk-make-positions-from-location (radius position &optional (chunk-width 8))
+  "Returns a list of '(x y) positions around an area from the given position, for making chunks."
+  (let* ((chunk-position (pos-world-to-chunk position chunk-width)))
+    (chunk-make-positions radius (aref chunk-position 0) (aref chunk-position 2))))
