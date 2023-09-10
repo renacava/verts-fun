@@ -104,16 +104,18 @@
             do (progn
                  (unless (gethash key key-state-table)
                    (setf (gethash key key-state-table)
-                         (make-instance 'key-state :key-name key))))))
-    ;; (mapcar (lambda (key)
-    ;;           (unless (gethash key key-state-table)
-    ;;             (setf (gethash key key-state-table)
-    ;;                   (make-instance 'key-state :key-name key))))
-    ;;         skitter.sdl2::*key-button-names*)
-    )
+                         (make-instance 'key-state :key-name key)))))))
   
   (defun keyboard-print ()
     (hash-table-print key-state-table))
 
   (defun keyboard-get-keystate-table ()
     key-state-table))
+
+(defun keysym-to-index (keysym)
+  "Returns the key-index matching keysym."
+  (plus-c:c-ref keysym sdl2-ffi:sdl-keysym :scancode))
+
+(defun keysym-to-property (keysym)
+  "Returns the :property matching the given keysym, eg :A"
+  (aref skitter.sdl2::*key-button-names* (keysym-to-index keysym)))

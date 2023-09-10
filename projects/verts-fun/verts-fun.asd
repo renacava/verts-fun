@@ -21,6 +21,7 @@
                (:file "moduclass")
                (:file "load-file")
                (:file "keyboard")
+               (:file "event")
                (:file "materials")
                (:file "cube")
                (:file "chunk")

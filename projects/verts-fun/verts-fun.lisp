@@ -187,7 +187,3 @@
 (def-simple-main-loop play (:on-start (lambda () (init)))
   (main-loop))
 
-
-
-
-
