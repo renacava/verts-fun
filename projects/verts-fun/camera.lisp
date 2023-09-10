@@ -8,23 +8,22 @@
    (rot
     :initarg :rot
     :initform (q:identity)
-    :accessor rot)))
+    :accessor rot)
+   (cam-speed
+    :initarg :cam-speed
+    :initform 1.0
+    :accessor cam-speed)))
 
 
 (let ((previous-w nil)
       (previous-r nil))
   (defun update-camera (camera)
-    ;; (setf *cam-pos* (v! (* 2 (+ 2 (* 2 (sin (* 2 (now))))))
-    ;;                     (* 2 (+ 2 (* 2 (sin (* 1.5 (now))))))
-    ;;                     (* 1 (+ 20 (sin (* 2 (now)))))))
-    ;; (setf *cam-rot* (q:from-axis-angle (v! 0 1 0)
-    ;;                                    (radians 0)))
     (if (keyboard-button (keyboard) key.w)
         (progn
           (setf (pos camera)
                 (v3:incf (pos camera)
                          (v3:*s (q:to-direction (rot camera))
-                                (* 10.0 *delta*))))
+                                (* 10.0 (cam-speed camera) *delta*))))
           (if previous-w
               (print "still-pressed")
               (print "w just pressed"))
@@ -37,7 +36,7 @@
       (setf (pos camera)
             (v3:decf (pos camera)
                      (v3:*s (q:to-direction (rot camera))
-                            (* 10.0 *delta*)))))
+                            (* 10.0 (cam-speed camera) *delta*)))))
 
     (when (keyboard-button (keyboard) key.escape)
       (unless (or (cepl.lifecycle:uninitialized-p)
@@ -68,7 +67,12 @@
           (setf previous-r t))
         (when previous-r
           
-          (setf previous-r nil))
-        ))
+          (setf previous-r nil)))
+    
+    (let ((wheel-value (aref (mouse-wheel (mouse)) 1)))
+      (cond ((< 0 wheel-value) (incf (cam-speed camera) (/ (cam-speed camera) 3)))
+            ((> 0 wheel-value) (decf-bound (cam-speed camera) 0 (/ (cam-speed camera) 3)))
+            (t nil)))
+    )
 
   )

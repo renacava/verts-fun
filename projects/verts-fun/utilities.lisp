@@ -1445,3 +1445,19 @@ It works because Common Lisp passes everything by value, not by reference, excep
         (if found?
             result
             (setf (gethash args cache) (apply func (enlist args))))))))
+
+(defmacro incf-bound (var upper-bound &optional (delta 1))
+  "Increments the given var to a maximum of upper-bound."
+  `(progn
+     (incf ,var ,delta)
+     (when (> ,var ,upper-bound)
+       (setf ,var ,upper-bound))
+     ,var))
+
+(defmacro decf-bound (var &optional (lower-bound 0) (delta 1))
+  "Decrements the given var to a minimum of lower-bound."
+  `(progn
+     (decf ,var ,delta)
+     (when (< ,var ,lower-bound)
+       (setf ,var ,lower-bound))
+     ,var))

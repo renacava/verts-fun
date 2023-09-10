@@ -1,2 +1,4 @@
 verts-fun\verts-fun.asd
 skitter-release-quicklisp-620772ae-git\skitter.asd
+skitter-release-quicklisp-620772ae-git\skitter.glop.asd
+skitter-release-quicklisp-620772ae-git\skitter.sdl2.asd
