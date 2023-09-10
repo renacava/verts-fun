@@ -22,12 +22,14 @@
                              collect (block-mesh-from-pos (elt positions index)
                                                           :vert-start-index (* index 24) ;;24 because the cube mesh we're using has 24 verts, i think
                                                           :spacing spacing)))))
+      (unless (and (getf chunk-mesh :indices)
+                   (getf chunk-mesh :verts))
+        (return-from make-chunk-stream))
       (make-buffer-stream
        (make-gpu-array (getf chunk-mesh :verts) :element-type 'g-pnt)
-       :index-array (make-gpu-array (getf chunk-mesh :indices) :element-type :uint)
-       :retain-arrays nil)))
-  
-  )
+       :index-array (getf chunk-mesh :indices)
+       :retain-arrays nil)
+      )))
 
 (defclass chunk (moduclass)
   ((pos
@@ -64,14 +66,19 @@
                                                      (abs height)
                                                      scaled-pos))))
 (defmethod render ((chunk chunk))
-  (map-g #'cube-pipeline
-         (buffer-stream chunk)
-         :now (now)
-         :perspective *perspective-matrix*
-         :cam-pos (pos *camera*)
-         :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
-         :2d-sampler *jade-sampler*
-         :debug-colour (debug-colour chunk)))
+  (let ((buffer-stream (buffer-stream chunk)))
+    (when (< 0 (buffer-stream-length buffer-stream))
+      
+      (map-g #'cube-pipeline
+             (buffer-stream chunk)
+             :now (now)
+             :perspective *perspective-matrix*
+             :cam-pos (pos *camera*)
+             :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
+             :2d-sampler *jade-sampler*
+             :debug-colour (debug-colour chunk))
+      ))
+  )
 
 (defun chunk-make-positions (radius &optional (x-offset 0) (z-offset 0))
   "Returns a list of '(x y) positions representing a square filled with positions to spawn chunks in.

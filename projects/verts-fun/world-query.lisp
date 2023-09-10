@@ -2,39 +2,15 @@
 
 (defun block-at-pos? (pos)
   "Returns T if there's a block at the given pos."
-  (and (< (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0))))))
-       t
-       (oddp (truncate (aref pos 2)))
-       (oddp (truncate (aref pos 1)))
-       (oddp (truncate (aref pos 0)))
-       ))
-
-(defun block-at-pos? (pos)
-  "Returns T if there's a block at the given pos."
-  (and (< (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0))))))
-       t
-       (oddp (truncate (aref pos 2)))
-       (oddp (truncate (aref pos 1)))
-       ;;(oddp (truncate (aref pos 0)))
-       ))
-
-(defun block-at-pos? (pos)
-  "Returns T if there's a block at the given pos."
-  (and (< (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0))))))
-       t
-       (oddp (truncate (aref pos 2)))
-       ;;(oddp (truncate (aref pos 1)))
-       ;;(oddp (truncate (aref pos 0)))
-       ))
-
-(defun block-at-pos? (pos)
-  "Returns T if there's a block at the given pos."
-  (and (< (aref pos 1) (+ 6 (* 2 (sin (* 0.5 (aref pos 0))))))
-       t
-       ;;(oddp (truncate (aref pos 2)))
-       ;;(oddp (truncate (aref pos 1)))
-       ;;(oddp (truncate (aref pos 0)))
-       ))
+  (let ((x 16)
+        (y 4)
+        (z 0.5))
+    (and (< (aref pos 1) (+ x (* y (sin (* z (aref pos 0))))))
+               ;;t
+               ;;(oddp (truncate (aref pos 2)))
+               ;;(oddp (truncate (aref pos 1)))
+               ;;(oddp (truncate (aref pos 0)))
+               )))
 
 (defun pos-above (pos)
   (vec3 (aref pos 0)

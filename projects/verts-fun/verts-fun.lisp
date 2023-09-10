@@ -122,6 +122,25 @@
                                          (- (random 1.5) 1.0))
                                 :scale 0.2))))
 
+(defun text-make-objects (value &key (pos (v! 0 0)) (scale 0.2) (spacing 1.0))
+  "Returns a list of text objects to represent the given value"
+  (let ((the-string (format nil "~a" value)))
+    (loop for char-index below (length the-string)
+          collect (make-instance 'text
+                                 :text (format nil "~a" (char the-string char-index))
+                                 :pos (v! (+ (aref pos 0) (* spacing scale char-index))
+                                          (aref pos 1))
+                                 :scale scale))))
+
+(defparameter *my-texts*
+  (list
+   (loop for text-index below 3
+         collect (make-instance 'text
+                                :text (format nil "~a" text-index)
+                                :pos (v! (- (random 2.0) 1.0)
+                                         (- (random 1.5) 1.0))
+                                :scale 0.2))))
+
 (defun draw ()
   "Called one per-frame, this is where everything is drawn."
   (when *game-stopped-p*
@@ -137,7 +156,9 @@
     ;;               *my-chunk2*))
     (render *chunks*)
     (without-depth
-      (render *my-texts*)))
+      (render (text-make-objects *fps* :pos (v! -1.2 0.9) :scale 0.1))
+      ;; (render *my-texts*)
+      ))
     
   (swap)
   (decay-events))
@@ -156,10 +177,11 @@
 
 (defparameter *default-blending-params* (make-blending-params))
 
-(defun init (&optional (view-distance 8) (chunk-size 8))
+(defun init (&optional (view-distance 8) (chunk-size 8) (chunk-height 32))
   (setf *game-stopped-p* nil)
   (when (boundp '*my-chunk*)
-    (free (buffer-stream *my-chunk*))
+    (when (buffer-stream *my-chunk*)
+      (free (buffer-stream *my-chunk*)))
     (setf *my-chunk* nil))
   (when (boundp '*chunks*)
     (mapcar (lambda (chunk)
@@ -178,10 +200,8 @@
   (defparameter *my-chunk* (make-chunk (vec3 0.0 0.0 0.0) 8 8))
   (defparameter *my-chunk2* (make-chunk (vec3 8.0 0.0 0.0) 8 8))
   (defparameter *chunks* (mapcar (lambda (xz)
-                                   (make-chunk (v! (first xz) 0.0 (second xz)) chunk-size 8))
-                                 (chunk-make-positions-from-location 5 (pos *camera*) 8)
-                                 ;;(chunk-make-positions view-distance)
-                                 ))
+                                   (make-chunk (v! (first xz) 0.0 (second xz)) chunk-size chunk-height))
+                                 (chunk-make-positions-from-location view-distance (pos *camera*) chunk-size)))
   (step-host))
 
 (def-simple-main-loop play (:on-start (lambda () (init)))
