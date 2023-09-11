@@ -1,6 +1,18 @@
-1.	Replace the sdl2.lisp file in your quicklisp/skitter/sdl2/ folder.
-
-Requirements [please make sure these are installed and listed in your environment-variables]:
-	SDL2
-	
+To get SDL2, SDL2-Image & SDL2-TTF working:
+	0. Install chocolatey package manager for windows
+	1. Install Cmder using Chocolatey: https://chocolatey.org/packages/Cmder
+		choco install cmder
+	2. Install mingw with chocolatey
+		choco install mingw
+	3. Download and copy all the SDL, SDL_image and SDL_ttf DLL's to SBCL's .exe folder, or for portacle, portacle/win/lib/:
+		a. https://www.libsdl.org/download-2.0.php
+		b. https://www.libsdl.org/projects/SDL_image/
+		c. https://www.libsdl.org/projects/SDL_ttf/
+		make sure to grab the x86 devel versions from all the release pages of the git repos.
+	4. Extract libffi6.dll into your SBCL's .exe or lib folder, too. The dll should be in the fixes folder, or /fixes/sdl2/libffi_3.2.1_prebuilt_mingw_4.9.0_64bit.zip
+	5. Download and copy the precompiled libffi folders include and .libs to the mingw64:
+		https://proj.goldencode.com/projects/p2j/wiki/Building_and_Installing_libffi_on_Windows
+    6. Copy the include and .libs folder to your chocolatey mingw folder:
+		C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\x86_64-w64-mingw32\<libs/include>
 		
+All the necessary files should be in the fixes/sdl2/ folder, in case these links are dead.
