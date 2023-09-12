@@ -42,8 +42,26 @@
 
     (defun text-init-sampler ()
       "Creates and binds the sampler for accessing the text atlas, to *text-sampler*. Returns *text-sampler*."
+      ;;(sdl2-ttf:init)
       (unless char-indices-initialised?
         (text-init-char-indices))
+      (sdl2-ttf:init)
+      (let* ((text-string "i love my renski so very much she is an integral part of my wellbeing")
+             (font (sdl2-ttf:open-font (find-file-font "silkscreen.ttf") 100))
+             (font-surface (sdl2:convert-surface-format (sdl2-ttf:render-text-solid font text-string 255 255 255 255) :rgba8888))
+             (pixel-data (sdl2:surface-pixels font-surface))
+             (surface-size (multiple-value-list (sdl2-ttf:size-text font text-string)))
+             ;; (text-texture (cl-soil:create-ogl-texture pixel-data (first surface-size) (second surface-size)))
+             )
+        ;;(setq my-texture (cepl.sdl2-image:sdl-surface-to-texture font-surface :uint8))
+        (setq my-surface font-surface)
+        (setq my-pixels pixel-data)
+        (setq my-surface-width (first surface-size))
+        (setq my-surface-height (second surface-size))
+        (setq my-format (sdl2:surface-format font-surface))
+        (sdl2-image:save-png font-surface "text-export.png")
+        ;;(setq my-text-texture text-texture)
+        )
       (defparameter *text-sampler* (sampler-from-filename "fonts/default.png"))
       )
 
@@ -121,4 +139,3 @@
          :2d-sampler *text-sampler*
          :offset (pos obj)
          :scale (scale obj)))
-

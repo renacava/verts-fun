@@ -9,9 +9,13 @@
       (cond ((probe-file filename) filename)
             ((probe-file (format nil "~a~a" alternate-folder filename))
              (format nil "~a~a" alternate-folder filename))
-            (t (if contingency (find-file contingency nil) nil))))
-    ;; (x-if-nil (probe-file filename) (format nil "~a~a" alternate-folder filename))
-    ))
+            (t (if contingency (find-file contingency nil) nil))))))
+
+(defun find-file-font (font-name)
+  "Attempts to find an image-file with the given filename."
+  (let ((filename (format nil "~a.ttf" (string-split font-name #\.))))
+    (or (find-file filename)
+        (find-file (format nil "fonts/~a" filename)))))
 
 (let ((formats (list ".png" ".jpg" ".jpeg" ".bmp")))
   (defun find-file-image (filename)

@@ -5,12 +5,20 @@
   :author "Your Name <your.name@example.com>"
   :license  "Specify license here"
   :version "0.0.1"
-  :depends-on (#:cepl #:cepl.sdl2 #:nineveh
-                      #:temporal-functions
-                      #:cepl.skitter.sdl2 #:dirt #:rtg-math
-                      #:sdl2-game-controller-db
-                      #:fiveam
-                      #:deploy)
+  :depends-on (#:cepl
+               #:cepl.sdl2
+               #:cepl.sdl2-image
+               #:sdl2-ttf
+               #:sdl2-image
+               #:nineveh
+               #:temporal-functions
+               #:cepl.skitter.sdl2
+               #:dirt
+               #:cl-soil
+               #:rtg-math
+               #:sdl2-game-controller-db
+               #:fiveam
+               #:deploy)
   :build-operation "deploy-op"
   :build-pathname "verts-fun-deployed"
   :entry-point "verts-fun::start"
