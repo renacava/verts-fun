@@ -42,28 +42,19 @@
 
     (defun text-init-sampler ()
       "Creates and binds the sampler for accessing the text atlas, to *text-sampler*. Returns *text-sampler*."
-      ;;(sdl2-ttf:init)
       (unless char-indices-initialised?
         (text-init-char-indices))
       (sdl2-ttf:init)
-      (let* ((text-string "i love my renski so very much she is an integral part of my wellbeing")
-             (font (sdl2-ttf:open-font (find-file-font "silkscreen.ttf") 100))
-             (font-surface (sdl2:convert-surface-format (sdl2-ttf:render-text-solid font text-string 255 255 255 255) :rgba8888))
+      (let* ((text-string " text ")
+             (font (sdl2-ttf:open-font (find-file-font "silkscreen.ttf") 64))
+             (font-surface (sdl2:convert-surface-format (sdl2-ttf:render-text-solid font text-string 255 255 255 0) :rgba8888))
              (pixel-data (sdl2:surface-pixels font-surface))
              (surface-size (multiple-value-list (sdl2-ttf:size-text font text-string)))
-             ;; (text-texture (cl-soil:create-ogl-texture pixel-data (first surface-size) (second surface-size)))
-             )
-        ;;(setq my-texture (cepl.sdl2-image:sdl-surface-to-texture font-surface :uint8))
-        (setq my-surface font-surface)
-        (setq my-pixels pixel-data)
-        (setq my-surface-width (first surface-size))
-        (setq my-surface-height (second surface-size))
-        (setq my-format (sdl2:surface-format font-surface))
-        (sdl2-image:save-png font-surface "text-export.png")
-        ;;(setq my-text-texture text-texture)
-        )
-      (defparameter *text-sampler* (sampler-from-filename "fonts/default.png"))
-      )
+             (surface-width (first surface-size))
+             (surface-height (second surface-size))
+             (pixel-vector (cffi:foreign-array-to-lisp pixel-data (list :array :uint8 surface-height (* surface-width 4))))
+             (texture (cepl:make-texture pixel-vector :element-type :uint8)))
+        (defparameter *text-sampler* (sample texture :minify-filter :nearest :magnify-filter :nearest))))
 
     (defun text-mesh-from-char (char)
       "Returns a list of 2 values to represent a 2D Rect mesh with uv's aligned to show the given char"
@@ -102,8 +93,7 @@
                     (make-buffer-stream (first mesh)
                                         :index-array (second mesh)
                                         :retain-arrays t))
-              (gethash char text-buffers)))))
-    )
+              (gethash char text-buffers))))))
 
   (text-init-char-indices))
 

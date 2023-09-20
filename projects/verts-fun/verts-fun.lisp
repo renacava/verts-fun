@@ -33,7 +33,8 @@
          (result (vec4 (aref debug-colour 0)
                        (aref debug-colour 1)
                        (aref debug-colour 2)
-                       (aref result 3))))
+                       (aref result 0)
+                       )))
     result))
 
 (defpipeline-g cube-pipeline ()
@@ -179,6 +180,7 @@
   (sdl2-game-controller-db:load-db)
   (defparameter *tile-sampler* (sampler-from-filename "tiles.png"))
   (defparameter *jade-sampler* (sampler-from-filename "jade-moon.jpg"))
+
   (defparameter *my-chunk* (make-chunk (vec3 0.0 0.0 0.0) 8 8))
   (defparameter *my-chunk2* (make-chunk (vec3 8.0 0.0 0.0) 8 8))
   (defparameter *chunks* (mapcar (lambda (xz)
