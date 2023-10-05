@@ -41,14 +41,25 @@
   :vertex (vertex-shader-stage g-pnt)
   :fragment (fragment-shader-stage :vec3 :vec2))
 
-(defun start (&key (x 400) (y 300) (title "verts-fun"))
-  (when (cepl:repl x y)
-    (play :start)))
+(let ((default-width 400)
+      (default-height 300))
+  (defun start (&key (x default-width) (y default-height) (title "verts-fun"))
+    (setf default-width x
+          default-height y)
+    (when (cepl:repl x y)
+      (play :start)))
 
-(defun stop ()
-  (unless (or (cepl.lifecycle:shutting-down-p)
-              (cepl.lifecycle:uninitialized-p))
-    (cepl:quit)))
+  (defun stop ()
+    (let ((dimensions (cepl:viewport-dimensions (cepl:current-viewport))))
+      (setf default-width (first dimensions))
+      (setf default-height (second dimensions)))
+    (unless (or (cepl.lifecycle:shutting-down-p)
+                (cepl.lifecycle:uninitialized-p))
+      (cepl:quit))))
+
+
+
+
 
 (defun window-title-set (title)
   "Sets the title of the window to the given title"
