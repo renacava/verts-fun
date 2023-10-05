@@ -49,8 +49,7 @@
           
           (unless previous-r
             (print "r just pressed in camera.lisp")
-            (init)
-            )
+            (init))
           (setf previous-r t))
         (when previous-r
           
