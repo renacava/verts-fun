@@ -113,9 +113,6 @@
 
 (defun main-loop ()
   "Contains calls to all things that should occur once per frame, like drawing."
-  ;; (unless (boundp 'my-texture)
-  ;;   (defparameter my-texture (cl-soil:create-ogl-texture my-pixels my-surface-width my-surface-height)))
-  ;;(gl:tex-image-2d :texture-2d 0 :rgba my-surface-width my-surface-height 0 :rgba :unsigned-byte my-pixels)
   (when (or (cepl.lifecycle:shutting-down-p)
             (cepl.lifecycle:uninitialized-p))
     (play :stop)
@@ -124,14 +121,7 @@
   (calculate-fps)
   (step-host))
 
-;; (defparameter *my-texts*
-;;   (list
-;;    (loop for text-index below 3
-;;          collect (make-instance 'text
-;;                                 :text (format nil "~a" text-index)
-;;                                 :pos (v! (- (random 2.0) 1.0)
-;;                                          (- (random 1.5) 1.0))
-;;                                 :scale 0.2))))
+(defparameter my-text nil)
 
 (defun draw ()
   "Called one per-frame, this is where everything is drawn."
@@ -143,11 +133,13 @@
         (get-cepl-context-surface-resolution))
   (update-viewport-perspective-matrix)
 
+  (unless my-text
+    (setf my-text (make-instance 'text2d)))
+  
   (with-blending *default-blending-params*
-    ;; (render (list *my-chunk*
-    ;;               *my-chunk2*))
     (render *chunks*)
     (without-depth
+      (render my-text)
       ;;(render *my-texts*)
       ))
     

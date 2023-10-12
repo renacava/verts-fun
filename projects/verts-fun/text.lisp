@@ -42,8 +42,8 @@
 
     (defun text-init-sampler ()
       "Creates and binds the sampler for accessing the text atlas, to *text-sampler*. Returns *text-sampler*."
-      (unless char-indices-initialised?
-        (text-init-char-indices))
+      ;; (unless char-indices-initialised?
+      ;;   (text-init-char-indices))
       (sdl2-ttf:init)
       (let* ((text-string "peace ")
              (font (sdl2-ttf:open-font (find-file-font "silkscreen.ttf") 8))
@@ -55,34 +55,6 @@
              (pixel-vector (cffi:foreign-array-to-lisp pixel-data (list :array :uint8 surface-height (* surface-width 4))))
              (texture (cepl:make-texture pixel-vector :element-type :uint8)))
         (defparameter *text-sampler* (sample texture :minify-filter :nearest :magnify-filter :nearest))))
-
-    (defun text-mesh-from-char (char)
-      "Returns a list of 2 values to represent a 2D Rect mesh with uv's aligned to show the given char"
-      (multiple-value-bind (result found?) (gethash char text-meshes)
-        (if found?
-            (values (first result) (second result))
-            (let* ((char-index (char-index char))
-                   (chars-per-line 16)
-                   (step (/ 1.0 chars-per-line))
-                   (test-index char-index)
-                   (test-row (truncate (/ test-index chars-per-line)))
-                   (test-column (mod test-index chars-per-line)))
-              (multiple-value-bind (verts indices)
-                  (rect-mesh :u-start (* test-column step)
-                             :v-start (* test-row step)
-                             :u-end (+ step (* test-column step))
-                             :v-end (+ step (* test-row step)))
-                (setf (gethash char text-meshes) (list verts indices)))
-              (gethash char text-meshes)))))
-
-    ;; (let ((buffer-func (cache-func
-    ;;                     (lambda (char)
-    ;;                       (let ((mesh (text-mesh-from-char char)))
-    ;;                         (make-buffer-stream (first mesh)
-    ;;                                             :index-array (second mesh)
-    ;;                                             :retain-arrays t))))))
-    ;;   (defun text-buffer-stream-from-char (char)
-    ;;     (funcall buffer-func char)))
     
     (defun text-buffer-stream-from-char (char)
       (multiple-value-bind (result found?) (gethash char text-buffers)
@@ -122,7 +94,6 @@
   (mapcar #'render obj))
 
 (defmethod render ((obj text))
-  
   (map-g #'gui-pipeline
          (text-buffer-stream-from-char (aref (text obj) 0))
          :perspective *perspective-matrix*
