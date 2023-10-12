@@ -57,10 +57,6 @@
                 (cepl.lifecycle:uninitialized-p))
       (cepl:quit))))
 
-
-
-
-
 (defun window-title-set (title)
   "Sets the title of the window to the given title"
   (setf (cepl:surface-title (cepl:current-surface)) (format nil "~a" title)))

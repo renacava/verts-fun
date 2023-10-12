@@ -38,8 +38,8 @@
      (let ((kbd (keyboard 0))
            (s (if (= s 0) 'released 'pressed))
            (key (keysym-to-property keysym)))
-       (print (format nil "Keyboard event:~%~5tts: ~a~%~5tstate: ~a~%~5tkey: ~a"
-                      ts s key))
+       ;; (print (format nil "Keyboard event:~%~5tts: ~a~%~5tstate: ~a~%~5tkey: ~a"
+       ;;                ts s key))
        (when (and (eq key :escape)
                   (eq s 'released))
          (stop))))))

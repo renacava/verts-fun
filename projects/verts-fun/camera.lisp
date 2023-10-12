@@ -31,7 +31,7 @@
       (move-forward camera -10.0))
     
     (when-mouse-button mouse.left
-      (setf (rot camera) (angle-to-cursor 2.0)))
+      (setf (rot camera) (angle-to-cursor 3.0)))
     
     (if (keyboard-button (keyboard) key.r)
         (progn
@@ -41,10 +41,11 @@
           (setf previous-r t))
         (when previous-r
           (setf previous-r nil)))
-    
-    (cond ((mouse-wheel-upp) (camera-speed-up camera))
-          ((mouse-wheel-downp) (camera-speed-down camera))
-          (t nil))))
+
+    (when (mouse-wheel-upp)
+      (camera-speed-up camera))
+    (when (mouse-wheel-downp)
+      (camera-speed-down camera))))
 
 (defmethod move-forward ((camera camera) (amount number))
   (setf (pos camera)
@@ -57,7 +58,6 @@
 
 (defmethod camera-speed-down ((camera camera))
   (decf (cam-speed camera) (/ (cam-speed camera) 3)))
-
 
 (defun mouse-wheel-upp ()
   "Returns T when the mousewheel is being scrolled upwards."
