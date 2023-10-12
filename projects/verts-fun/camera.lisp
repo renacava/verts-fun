@@ -29,6 +29,10 @@
       (move-forward camera 10.0))
     (when-keydown key.s
       (move-forward camera -10.0))
+    (when-keydown key.space
+      (move-up camera 10))
+    (when-keydown key.lctrl
+      (move-up camera -10))
     
     (when-mouse-button mouse.left
       (setf (rot camera) (angle-to-cursor 3.0)))
@@ -52,6 +56,11 @@
         (v3:incf (pos camera)
                  (v3:*s (q:to-direction (rot camera))
                         (* amount (cam-speed camera) *delta*)))))
+
+(defmethod move-up ((camera camera) (amount number))
+  (setf (pos camera)
+        (v3:incf (pos camera)
+                 (v! 0 (* amount (cam-speed camera) *delta*) 0))))
 
 (defmethod camera-speed-up ((camera camera))
   (incf (cam-speed camera) (/ (cam-speed camera) 3)))
