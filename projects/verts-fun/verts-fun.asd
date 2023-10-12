@@ -37,6 +37,7 @@
                (:file "texture")
                (:file "text")
                (:file "world-query")
+               (:file "window")
                (:file "camera")
                (:file "verts-fun")
                (:file "gui")
