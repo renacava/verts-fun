@@ -129,13 +129,7 @@
 ;; CLASSES
 
 (defclass mesh2d (moduclass)
-  ((verts
-    :initarg :verts
-    :accessor verts)
-   (indices
-    :initarg :indices
-    :accessor indices)
-   (buffer-stream
+  ((buffer-stream
     :initarg :buffer-stream
     :accessor buffer-stream)
    (colour
@@ -167,17 +161,43 @@
     :initform 0.0
     :accessor tint-strength)))
 
-(defclass text2d (texture-rect2d)
+(defclass text2d (rect2d)
   ((text
     :initarg :text
     :initform "text"
-    :accessor text)))
+    :accessor text)
+   (sampler
+    :initarg :sampler
+    :initform nil
+    :accessor sampler)))
 
+(defmethod change-text ((obj text2d) text)
+  (let* ((sampler (text-make-sampler text))
+         (dimensions (texture-base-dimensions (sampler-texture sampler)))
+         (width (first dimensions))
+         (height (second dimensions)))
+    (setf (slot-value obj 'sampler) sampler
+          (slot-value obj 'width) width
+          (slot-value obj 'height) height
+          (slot-value obj 'buffer-stream) (make-rect-buffer-stream (/ width 256) (/ height 64)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; CONSTRUCTORS
+
+(defmethod initialize-instance :after ((rect2d rect2d) &key (width 1.0) (height 1.0))
+  (setf (slot-value rect2d 'width) width
+        (slot-value rect2d 'height) height
+        (slot-value rect2d 'buffer-stream) (make-rect-buffer-stream width height)))
+
+(defmethod initialize-instance :after ((obj text2d) &rest initargs)
+  (change-text obj (or (slot-value obj 'text)
+                       "none")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; METHODS
 
-(defun make-rect-mesh (width height)
+(defun make-rect-buffer-stream (width height)
   (let* ((width (half width))
          (height (half height))
          (verts (make-gpu-array (list (list (v! (- width) (- height) 0.0) (v! 0 1))
@@ -187,25 +207,7 @@
                                 :element-type 'g-pt))
          (indices (make-gpu-array (list 0 1 2 3 0 2)
                                   :element-type :uint)))
-    (list
-     :width (* width 2)
-     :height (* height 2)
-     :verts verts
-     :indices indices
-     :buffer-stream (make-buffer-stream verts :index-array indices :retain-arrays t))))
-
-(defmethod initialize-instance :around ((rect2d rect2d) &key (width 1.0) (height 1.0))
-  (let* ((mesh (make-rect-mesh width height)))
-    
-    (call-next-method rect2d :width (getf mesh :width)
-                             :height (getf mesh :height)
-                             :verts (getf mesh :verts)
-                             :indicies (getf mesh :indicies)
-                             :buffer-stream (getf mesh :buffer-stream))))
-
-(defmethod initialize-instance :around ((text2d text2d) &key (text "default"))
-  (multiple-value-bind (sampler width height) (text-make-sampler text)
-    (call-next-method text2d :text text :sampler sampler :width width :height height)))
+    (make-buffer-stream verts :index-array indices :retain-arrays t)))
 
 (defmethod render ((mesh2d mesh2d))
   (render-mesh2d-macro #'gui-flat-pipeline
@@ -241,10 +243,4 @@
                   (sample texture :minify-filter :nearest :magnify-filter :nearest))))))
 
   (defmethod (setf text) (text (text2d text2d))
-    (setf (slot-value text2d 'sampler) (text-make-sampler text))
-    (let* ((sampler (text-make-sampler text))
-           (dimensions (texture-base-dimensions (sampler-texture sampler)))
-           (width (first dimensions))
-           (height (second dimensions)))
-      (setf (slot-value text2d 'sampler) sampler))
-    (setf (slot-value text2d 'text) text)))
+    (change-text text2d text)))

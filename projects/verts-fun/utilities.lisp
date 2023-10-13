@@ -1003,6 +1003,15 @@ It works because Common Lisp passes everything by value, not by reference, excep
   "An abbreviated signature of call-if-func-recursively. Recursively calls the result of the given value if its a function, until a non-function is reached, returns that non-function value."
   (call-if-func-recursively value))
 
+(defun resolve (value)
+  "Recursively checks if the given value is a function, calling it if so, until the value returned from funcalling is not a function. Returns that value."
+  (let ((result (if (functionp value)
+                    (funcall value)
+                    value)))
+    (if (functionp result)
+        (call-if-func-recursively result)
+        result)))
+
 (defun divide-list (sequence width)
   "Returns a list of lists, that have been created by dividing the given sequence into subsequences of max length width."
   (unless (< 0 width)
