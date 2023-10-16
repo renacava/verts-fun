@@ -70,8 +70,9 @@
          :perspective *perspective-matrix*
          :cam-pos (pos *camera*)
          :cam-rot (q:to-mat3 (q:inverse (rot *camera*)))
-         :2d-sampler *text-sampler*
-         :debug-colour (debug-colour chunk)))
+         :2d-sampler *jade-sampler*;;*text-sampler*
+         :debug-colour (debug-colour chunk)
+         ))
 
 (defun chunk-make-positions (radius &optional (x-offset 0) (z-offset 0))
   "Returns a list of '(x y) positions representing a square filled with positions to spawn chunks in.
