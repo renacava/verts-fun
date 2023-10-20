@@ -4,7 +4,7 @@
   `(map-g ,pipeline-func
           (buffer-stream ,mesh2d)
           :perspective *perspective-matrix*
-          :offset (v! 0 0)
+          :offset (normalise-to-screen (resolve (offset ,mesh2d)))
           :scale (float (scale ,mesh2d))
           :colour (colour ,mesh2d)
           ,@args))
@@ -128,7 +128,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; CLASSES
 
-(defclass mesh2d (moduclass)
+(defclass obj2d (moduclass)
+  ((offset
+    :initarg :offset
+    :initform (v! 0.0 0.0)
+    :accessor offset)))
+
+(defclass mesh2d (obj2d)
   ((buffer-stream
     :initarg :buffer-stream
     :accessor buffer-stream)
