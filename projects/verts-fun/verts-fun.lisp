@@ -122,6 +122,7 @@
   (step-host))
 
 (defparameter my-text nil)
+(defparameter my-text2 nil)
 
 (defun draw ()
   "Called one per-frame, this is where everything is drawn."
@@ -134,12 +135,23 @@
   (update-viewport-perspective-matrix)
 
   (unless my-text
-    (setf my-text (make-instance 'text2d)))
+    (setf my-text (make-instance 'text2d
+                                 :text "gravity boxer"
+                                 :offset (lambda () (vec2 
+                                                     (half (1+ (sin (get-internal-real-time-seconds)))) 
+                                                     (half (1+ (cos (get-internal-real-time-seconds)))))))))
+
+  (unless my-text2
+    (setf my-text2 (make-instance 'text2d
+                                  :text "What will I suffer through, if I stay the way I am?"
+                                  :scale 0.55
+                                  :offset (vec2 0.5 0.95))))
   
   (with-blending *default-blending-params*
     (render *chunks*)
     (without-depth
       (render my-text)
+      (render my-text2)
       ;;(render *my-texts*)
       ))
     

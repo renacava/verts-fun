@@ -46,7 +46,7 @@
       ;;   (text-init-char-indices))
       (sdl2-ttf:init)
       (let* ((text-string "peace ")
-             (font (sdl2-ttf:open-font (find-file-font "silkscreen.ttf") 8))
+             (font (sdl2-ttf:open-font (find-file-font "wildwords.ttf") 8))
              (font-surface (sdl2:convert-surface-format (sdl2-ttf:render-text-solid font text-string 255 255 255 0) :rgba8888))
              (pixel-data (sdl2:surface-pixels font-surface))
              (surface-size (multiple-value-list (sdl2-ttf:size-text font text-string)))

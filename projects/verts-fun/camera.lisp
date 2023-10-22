@@ -36,6 +36,25 @@
     
     (when-mouse-button mouse.left
       (setf (rot camera) (angle-to-cursor 3.0)))
+    ;; (let* ((mouse-move (v2:*s (mouse-move (mouse)) 0.01))
+    ;;        (old-angle (q:get-axis-angle (q:normalize (rot camera))))
+    ;;        (new-angle (q:+ (v! (elt old-angle 0)
+    ;;                            (elt old-angle 1)
+    ;;                            (elt old-angle 2))
+    ;;                        (v! 1.0 1.0 1.0 0.0)))
+    ;;        (mouse-x (aref mouse-move 0))
+    ;;        (mouse-y (aref mouse-move 1)))
+    ;;   (setf (rot camera)
+    ;;         (q:from-fixed-angles-v3
+    ;;          (vec3 (elt new-angle 0)
+    ;;                (elt new-angle 1)
+    ;;                ;; (elt new-angle 2)
+    ;;                0.0
+    ;;                ))
+    ;;         ;; (q:+ (rot camera)
+    ;;         ;;      (q:from-fixed-angles mouse-x mouse-y 0.0))
+    ;;         ;;(angle-to-cursor 1.0)
+    ;;         ))
     
     (if (keyboard-button (keyboard) key.r)
         (progn

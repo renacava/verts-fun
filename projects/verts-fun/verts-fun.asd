@@ -29,6 +29,7 @@
                (:file "moduclass")
                (:file "load-file")
                (:file "keyboard")
+               (:file "mouse")
                (:file "event")
                (:file "materials")
                (:file "cube")
